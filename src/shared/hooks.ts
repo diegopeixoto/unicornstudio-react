@@ -24,6 +24,13 @@ export interface UseUnicornSceneParams {
   onError?: (error: Error) => void;
 }
 
+/**
+ * React hook for initializing, validating, and managing the lifecycle of a Unicorn Studio scene within a component.
+ *
+ * Handles scene creation, cleanup, parameter validation, error reporting, and supports both project ID and JSON file sources. Automatically manages scene re-initialization on configuration changes and provides error feedback via callback and return value.
+ *
+ * @returns An object containing the current initialization error, if any, as `error`.
+ */
 export function useUnicornScene({
   elementRef,
   projectId,
