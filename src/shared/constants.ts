@@ -1,7 +1,7 @@
 import type { ValidFPS, ScaleRange } from "./types";
 
 // UnicornStudio configuration constants
-export const UNICORN_STUDIO_VERSION = "1.4.29";
+export const UNICORN_STUDIO_VERSION = "1.4.30";
 export const UNICORN_STUDIO_CDN_URL = `https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v${UNICORN_STUDIO_VERSION}/dist/unicornStudio.umd.js`;
 
 // Default values for UnicornScene props
