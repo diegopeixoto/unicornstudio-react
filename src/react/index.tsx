@@ -8,6 +8,7 @@ import { isWebGLSupported } from "../shared/utils";
 function UnicornScene({
   projectId,
   jsonFilePath,
+  sdkUrl = UNICORN_STUDIO_CDN_URL,
   width = DEFAULT_VALUES.width,
   height = DEFAULT_VALUES.height,
   scale = DEFAULT_VALUES.scale,
@@ -32,7 +33,7 @@ function UnicornScene({
   const {
     isLoaded,
     error: scriptError,
-  } = useUnicornStudioScript(UNICORN_STUDIO_CDN_URL);
+  } = useUnicornStudioScript(sdkUrl);
   
   const { error: sceneError } = useUnicornScene({
     elementRef,
