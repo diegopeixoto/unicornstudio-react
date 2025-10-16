@@ -6,6 +6,7 @@ export type ScaleRange = number;
 export interface UnicornSceneProps {
   projectId?: string;
   jsonFilePath?: string;
+  sdkUrl?: string;
   altText?: string;
   width?: number | string;
   height?: number | string;
