@@ -11,6 +11,7 @@ import { isWebGLSupported } from "../shared/utils";
 function UnicornScene({
   projectId,
   jsonFilePath,
+  sdkUrl = UNICORN_STUDIO_CDN_URL,
   width = DEFAULT_VALUES.width,
   height = DEFAULT_VALUES.height,
   scale = DEFAULT_VALUES.scale,
@@ -86,7 +87,7 @@ function UnicornScene({
   return (
     <>
       <Script
-        src={UNICORN_STUDIO_CDN_URL}
+        src={sdkUrl}
         strategy={lazyLoad ? "lazyOnload" : "afterInteractive"}
         onLoad={handleScriptLoad}
         onError={handleScriptError}
