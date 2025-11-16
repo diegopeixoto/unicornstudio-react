@@ -277,6 +277,17 @@ const constants = {
 
 **Warning**: Using a custom script URL may violate Unicorn.Studio's Terms of Service. Consult their legal terms before implementing.
 
+**React/Next.js Example usage:**
+
+```tsx
+<UnicornScene
+  projectId="YOUR_PROJECT_EMBED_ID"
+  sdkUrl="https://your-custom-cdn.com/unicornStudio.umd.js"
+  width={800}
+  height={600}
+/>
+```
+
 ### Browser Support
 
 - Chrome (latest)
