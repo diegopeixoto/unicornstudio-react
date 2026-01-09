@@ -1,6 +1,6 @@
 {
   "name": "unicornstudio-react",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "React component for embedding Unicorn.Studio interactive scenes with TypeScript support. Compatible with React (Vite) and Next.js.",
   "keywords": [
     "react",
