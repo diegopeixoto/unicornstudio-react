@@ -14,6 +14,7 @@ export const DEFAULT_VALUES = {
   fps: 60 as ValidFPS, // 15, 24, 30, 60, or 120
   altText: "Scene",
   className: "",
+  paused: false,
   lazyLoad: true,
   showPlaceholderOnError: true,
   showPlaceholderWhileLoading: true,

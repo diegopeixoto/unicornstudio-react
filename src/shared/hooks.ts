@@ -20,6 +20,7 @@ export interface UseUnicornSceneParams {
   altText: string;
   ariaLabel: string;
   isScriptLoaded: boolean;
+  paused?: boolean;
   onLoad?: () => void;
   onError?: (error: Error) => void;
 }
@@ -36,6 +37,7 @@ export function useUnicornScene({
   altText,
   ariaLabel,
   isScriptLoaded,
+  paused,
   onLoad,
   onError,
 }: UseUnicornSceneParams) {
@@ -233,6 +235,13 @@ export function useUnicornScene({
       initializationKeyRef.current = ""; // Reset the key to allow fresh initialization
     }
   }, [projectId, jsonFilePath, scale, dpi, fps, production]);
+
+  // Sync paused state with scene
+  useEffect(() => {
+    if (sceneRef.current && paused !== undefined) {
+      sceneRef.current.paused = paused;
+    }
+  }, [paused]);
 
   return { error: initError };
 }

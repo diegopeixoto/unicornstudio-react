@@ -22,6 +22,7 @@ function UnicornScene({
   className = DEFAULT_VALUES.className,
   lazyLoad = DEFAULT_VALUES.lazyLoad,
   production = DEFAULT_VALUES.production,
+  paused = DEFAULT_VALUES.paused,
   placeholder,
   placeholderClassName,
   showPlaceholderOnError = DEFAULT_VALUES.showPlaceholderOnError,
@@ -51,6 +52,7 @@ function UnicornScene({
     altText,
     ariaLabel: ariaLabel || altText,
     isScriptLoaded: isLoaded,
+    paused,
     onLoad: () => {
       setIsSceneLoaded(true);
       onLoad?.();
