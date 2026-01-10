@@ -210,6 +210,7 @@ The component now supports flexible placeholder options that can be displayed wh
 | `className`                   | `string`                 | `""`      | Additional CSS classes                                                     |
 | `lazyLoad`                    | `boolean`                | `true`    | Load scene only when scrolled into view                                    |
 | `production`                  | `boolean`                | `true`    | Use production CDN                                                         |
+| `paused`                      | `boolean`                | `false`   | Pause or resume the scene animation                                        |
 | `placeholder`                 | `string \| ReactNode`    | -         | Placeholder content (image URL or React component)                         |
 | `placeholderClassName`        | `string`                 | -         | CSS classes for placeholder div (when using CSS placeholder)               |
 | `showPlaceholderOnError`      | `boolean`                | `true`    | Show placeholder when scene fails to load                                  |
