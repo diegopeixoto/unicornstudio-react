@@ -7,24 +7,116 @@ import type {
 } from "./types";
 import { validateParameters } from "./utils";
 
-// Custom hook for scene management
+/**
+ * Parameters for the useUnicornScene hook.
+ */
 export interface UseUnicornSceneParams {
+  /**
+   * React ref to the container element where the scene will be rendered.
+   */
   elementRef: React.RefObject<HTMLDivElement | null>;
+
+  /**
+   * The Unicorn Studio project ID to load.
+   */
   projectId?: string;
+
+  /**
+   * Path to a local JSON file containing the scene data.
+   */
   jsonFilePath?: string;
+
+  /**
+   * Whether to use production mode for the scene.
+   */
   production?: boolean;
+
+  /**
+   * Rendering scale factor (0.25 to 1.0).
+   */
   scale: ScaleRange;
+
+  /**
+   * Device pixel ratio for rendering.
+   */
   dpi: number;
+
+  /**
+   * Target frames per second for the animation.
+   */
   fps: ValidFPS;
+
+  /**
+   * Whether to lazy load the scene when it enters the viewport.
+   */
   lazyLoad: boolean;
+
+  /**
+   * Alt text for accessibility.
+   */
   altText: string;
+
+  /**
+   * ARIA label for the scene container.
+   */
   ariaLabel: string;
+
+  /**
+   * Whether the Unicorn Studio SDK script has finished loading.
+   */
   isScriptLoaded: boolean;
+
+  /**
+   * Whether the scene animation is paused.
+   */
   paused?: boolean;
+
+  /**
+   * Callback fired when the scene has loaded successfully.
+   */
   onLoad?: () => void;
+
+  /**
+   * Callback fired when an error occurs during scene loading.
+   *
+   * @param error - The error that occurred
+   */
   onError?: (error: Error) => void;
 }
 
+/**
+ * Hook for managing a Unicorn Studio scene lifecycle.
+ *
+ * @remarks
+ * This hook handles scene initialization, configuration updates, pause state synchronization,
+ * and cleanup. It is framework-agnostic and used internally by both React and Next.js components.
+ *
+ * The hook will automatically:
+ * - Initialize the scene when the SDK script loads
+ * - Re-initialize when configuration changes
+ * - Sync the paused state with the scene
+ * - Clean up resources on unmount
+ *
+ * @param params - The hook parameters
+ * @returns An object containing any initialization error
+ *
+ * @example
+ * ```tsx
+ * const { error } = useUnicornScene({
+ *   elementRef,
+ *   projectId: "my-project-id",
+ *   scale: 1,
+ *   dpi: 1.5,
+ *   fps: 60,
+ *   lazyLoad: true,
+ *   altText: "My Scene",
+ *   ariaLabel: "Interactive animation",
+ *   isScriptLoaded: true,
+ *   onLoad: () => console.log("Scene loaded!"),
+ *   onError: (err) => console.error(err),
+ * });
+ * ```
+ */
 export function useUnicornScene({
   elementRef,
   projectId,
@@ -40,7 +132,7 @@ export function useUnicornScene({
   paused,
   onLoad,
   onError,
-}: UseUnicornSceneParams) {
+}: UseUnicornSceneParams): { error: Error | null } {
   const sceneRef = useRef<UnicornStudioScene | null>(null);
   const [initError, setInitError] = useState<Error | null>(null);
   const hasAttemptedRef = useRef(false);
@@ -90,7 +182,9 @@ export function useUnicornScene({
 
     // Check if we're already initialized with this exact configuration
     if (initializationKeyRef.current === currentKey && sceneRef.current) {
-      console.log("Scene already initialized with this configuration, skipping...");
+      console.log(
+        "Scene already initialized with this configuration, skipping..."
+      );
       return;
     }
 
