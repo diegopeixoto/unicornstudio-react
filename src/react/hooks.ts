@@ -1,6 +1,41 @@
 import { useEffect, useState, useCallback } from "react";
 
-export function useUnicornStudioScript(scriptUrl: string) {
+/**
+ * Hook for loading the Unicorn Studio SDK script in React applications.
+ *
+ * @remarks
+ * This hook manages the lifecycle of the Unicorn Studio SDK script element.
+ * It handles script loading, error states, and prevents duplicate script tags.
+ * The script is loaded asynchronously and persists in the DOM to avoid re-loading on remount.
+ *
+ * @param scriptUrl - The URL of the Unicorn Studio SDK script to load
+ * @returns An object containing loading state, error state, and event handlers
+ *
+ * @example
+ * ```tsx
+ * const { isLoaded, error } = useUnicornStudioScript(
+ *   "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.0.1/dist/unicornStudio.umd.js"
+ * );
+ *
+ * if (error) {
+ *   return <div>Failed to load SDK</div>;
+ * }
+ *
+ * if (!isLoaded) {
+ *   return <div>Loading...</div>;
+ * }
+ * ```
+ */
+export function useUnicornStudioScript(scriptUrl: string): {
+  /** Whether the script has finished loading successfully */
+  isLoaded: boolean;
+  /** Error that occurred during script loading, if any */
+  error: Error | null;
+  /** Callback to handle successful script load */
+  handleScriptLoad: () => void;
+  /** Callback to handle script loading error */
+  handleScriptError: () => void;
+} {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
