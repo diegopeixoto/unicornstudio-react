@@ -5,6 +5,49 @@ import { UNICORN_STUDIO_CDN_URL, DEFAULT_VALUES } from "../shared/constants";
 import { unicornStyles } from "../shared/styles";
 import { isWebGLSupported } from "../shared/utils";
 
+/**
+ * React component for rendering Unicorn Studio WebGL animations.
+ *
+ * @remarks
+ * This component wraps Unicorn Studio's WebGL animation system for use in React applications.
+ * It handles script loading, scene initialization, placeholder display, and error states.
+ *
+ * The component requires either a `projectId` (to load from Unicorn Studio's servers)
+ * or a `jsonFilePath` (to load from a local JSON file).
+ *
+ * @param props - The component props
+ *
+ * @example
+ * Basic usage with project ID:
+ * ```tsx
+ * <UnicornScene
+ *   projectId="your-project-id"
+ *   width={800}
+ *   height={600}
+ * />
+ * ```
+ *
+ * @example
+ * With placeholder and callbacks:
+ * ```tsx
+ * <UnicornScene
+ *   projectId="your-project-id"
+ *   placeholder="/images/loading.png"
+ *   onLoad={() => console.log("Scene loaded!")}
+ *   onError={(err) => console.error(err)}
+ * />
+ * ```
+ *
+ * @example
+ * Using local JSON file:
+ * ```tsx
+ * <UnicornScene
+ *   jsonFilePath="/scenes/animation.json"
+ *   scale={0.5}
+ *   fps={30}
+ * />
+ * ```
+ */
 function UnicornScene({
   projectId,
   jsonFilePath,
