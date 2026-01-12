@@ -8,6 +8,58 @@ import { UNICORN_STUDIO_CDN_URL, DEFAULT_VALUES } from "../shared/constants";
 import { unicornStyles } from "../shared/styles";
 import { isWebGLSupported } from "../shared/utils";
 
+/**
+ * Next.js component for rendering Unicorn Studio WebGL animations.
+ *
+ * @remarks
+ * This component wraps Unicorn Studio's WebGL animation system for use in Next.js applications.
+ * It uses Next.js's optimized `Script` and `Image` components for better performance.
+ *
+ * The component is marked with `"use client"` as it requires browser APIs.
+ *
+ * The component requires either a `projectId` (to load from Unicorn Studio's servers)
+ * or a `jsonFilePath` (to load from a local JSON file).
+ *
+ * @param props - The component props
+ *
+ * @example
+ * Basic usage with project ID:
+ * ```tsx
+ * import { UnicornScene } from "unicornstudio-react/next";
+ *
+ * export default function Page() {
+ *   return (
+ *     <UnicornScene
+ *       projectId="your-project-id"
+ *       width={800}
+ *       height={600}
+ *     />
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * With placeholder and callbacks:
+ * ```tsx
+ * <UnicornScene
+ *   projectId="your-project-id"
+ *   placeholder="/images/loading.png"
+ *   onLoad={() => console.log("Scene loaded!")}
+ *   onError={(err) => console.error(err)}
+ * />
+ * ```
+ *
+ * @example
+ * Using local JSON file with reduced quality for performance:
+ * ```tsx
+ * <UnicornScene
+ *   jsonFilePath="/scenes/animation.json"
+ *   scale={0.5}
+ *   fps={30}
+ *   lazyLoad={true}
+ * />
+ * ```
+ */
 function UnicornScene({
   projectId,
   jsonFilePath,
