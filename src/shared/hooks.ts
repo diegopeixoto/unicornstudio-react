@@ -82,6 +82,28 @@ export interface UseUnicornSceneParams {
    * @param error - The error that occurred
    */
   onError?: (error: Error) => void;
+
+  /**
+   * Optional ref that receives the active Unicorn Studio scene instance.
+   */
+  sceneRef?: React.Ref<UnicornStudioScene | null>;
+}
+
+/**
+ * Keeps an external ref in sync with the current scene instance.
+ */
+function assignSceneRef(
+  ref: React.Ref<UnicornStudioScene | null> | undefined,
+  value: UnicornStudioScene | null
+) {
+  if (!ref) return;
+
+  if (typeof ref === "function") {
+    ref(value);
+    return;
+  }
+
+  (ref as React.MutableRefObject<UnicornStudioScene | null>).current = value;
 }
 
 /**
@@ -132,8 +154,9 @@ export function useUnicornScene({
   paused,
   onLoad,
   onError,
+  sceneRef,
 }: UseUnicornSceneParams): { error: Error | null } {
-  const sceneRef = useRef<UnicornStudioScene | null>(null);
+  const internalSceneRef = useRef<UnicornStudioScene | null>(null);
   const [initError, setInitError] = useState<Error | null>(null);
   const hasAttemptedRef = useRef(false);
   const initializationKeyRef = useRef<string>("");
@@ -161,12 +184,13 @@ export function useUnicornScene({
   }, [validationError, onError]);
 
   const destroyScene = useCallback(() => {
-    if (sceneRef.current?.destroy) {
-      sceneRef.current.destroy();
-      sceneRef.current = null;
+    if (internalSceneRef.current?.destroy) {
+      internalSceneRef.current.destroy();
+      internalSceneRef.current = null;
+      assignSceneRef(sceneRef, null);
     }
     isInitializingRef.current = false;
-  }, []);
+  }, [sceneRef]);
 
   const initializeScene = useCallback(async () => {
     if (!elementRef.current || !isScriptLoaded || validationError) return;
@@ -181,7 +205,7 @@ export function useUnicornScene({
     const currentKey = `${projectId || ""}-${jsonFilePath || ""}-${scale}-${dpi}-${fps}-${production ? "prod" : "dev"}`;
 
     // Check if we're already initialized with this exact configuration
-    if (initializationKeyRef.current === currentKey && sceneRef.current) {
+    if (initializationKeyRef.current === currentKey && internalSceneRef.current) {
       console.log(
         "Scene already initialized with this configuration, skipping..."
       );
@@ -253,7 +277,9 @@ export function useUnicornScene({
         cleanup();
 
         if (scene) {
-          sceneRef.current = scene;
+          internalSceneRef.current = scene;
+          // Expose the latest scene instance so parent components can use it.
+          assignSceneRef(sceneRef, scene);
           hasAttemptedRef.current = false; // Reset on success
           setInitError(null); // Clear any previous errors
           isInitializingRef.current = false;
@@ -305,6 +331,7 @@ export function useUnicornScene({
     destroyScene,
     onLoad,
     onError,
+    sceneRef,
     validationError,
   ]);
 
@@ -332,8 +359,8 @@ export function useUnicornScene({
 
   // Sync paused state with scene
   useEffect(() => {
-    if (sceneRef.current && paused !== undefined) {
-      sceneRef.current.paused = paused;
+    if (internalSceneRef.current && paused !== undefined) {
+      internalSceneRef.current.paused = paused;
     }
   }, [paused]);
 

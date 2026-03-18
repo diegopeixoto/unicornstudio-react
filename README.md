@@ -144,6 +144,45 @@ export default function MyComponent() {
 }
 ```
 
+### Accessing the Scene Instance
+
+Use the `sceneRef` prop when you want access to the underlying Unicorn Studio scene object after it initializes.
+
+```tsx
+import { useRef } from "react";
+import UnicornScene, { type UnicornStudioScene } from "unicornstudio-react";
+
+export default function MyComponent() {
+  const sceneRef = useRef<UnicornStudioScene | null>(null);
+
+  const pauseScene = () => {
+    if (sceneRef.current) {
+      sceneRef.current.paused = true;
+    }
+  };
+
+  const resizeScene = () => {
+    sceneRef.current?.resize?.();
+  };
+
+  return (
+    <>
+      <UnicornScene
+        projectId="YOUR_PROJECT_EMBED_ID"
+        width={800}
+        height={600}
+        sceneRef={sceneRef}
+      />
+
+      <button onClick={pauseScene}>Pause</button>
+      <button onClick={resizeScene}>Resize</button>
+    </>
+  );
+}
+```
+
+The `sceneRef` value is assigned once the scene finishes loading and is cleared automatically if the scene is destroyed or re-initialized.
+
 ## Placeholder Support
 
 The component now supports flexible placeholder options that can be displayed while loading, on error, or when WebGL is not supported.
@@ -217,6 +256,7 @@ The component now supports flexible placeholder options that can be displayed wh
 | `showPlaceholderWhileLoading` | `boolean`                | `true`    | Show placeholder while scene is loading                                    |
 | `onLoad`                      | `() => void`             | -         | Callback when scene loads successfully                                     |
 | `onError`                     | `(error: Error) => void` | -         | Callback when scene fails to load                                          |
+| `sceneRef`                    | `Ref<UnicornStudioScene \| null>` | - | Ref that receives the initialized Unicorn Studio scene instance            |
 
 ## Styling
 
