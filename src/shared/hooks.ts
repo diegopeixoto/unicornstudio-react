@@ -192,133 +192,146 @@ export function useUnicornScene({
     isInitializingRef.current = false;
   }, [sceneRef]);
 
-  const initializeScene = useCallback(async () => {
-    if (!elementRef.current || !isScriptLoaded || validationError) return;
+  useEffect(() => {
+    let ignore = false;
 
-    // Prevent multiple concurrent initializations
-    if (isInitializingRef.current) {
-      console.log("Already initializing, skipping...");
-      return;
-    }
+    async function initializeScene() {
+      if (!elementRef.current || !isScriptLoaded || validationError) return;
 
-    // Create a unique key for this configuration
-    const currentKey = `${projectId || ""}-${jsonFilePath || ""}-${scale}-${dpi}-${fps}-${production ? "prod" : "dev"}`;
+      // Prevent multiple concurrent initializations
+      if (isInitializingRef.current) return;
 
-    // Check if we're already initialized with this exact configuration
-    if (initializationKeyRef.current === currentKey && internalSceneRef.current) {
-      console.log(
-        "Scene already initialized with this configuration, skipping..."
-      );
-      return;
-    }
+      // Create a unique key for this configuration
+      const currentKey = `${projectId || ""}-${jsonFilePath || ""}-${scale}-${dpi}-${fps}-${production ? "prod" : "dev"}`;
 
-    // Update the initialization key and flag
-    initializationKeyRef.current = currentKey;
-    hasAttemptedRef.current = true;
-    isInitializingRef.current = true;
-
-    try {
-      destroyScene();
-      // Check if UnicornStudio is available
-      if (!window.UnicornStudio?.addScene) {
-        throw new Error("UnicornStudio.addScene not found");
+      // Check if we're already initialized with this exact configuration
+      if (
+        initializationKeyRef.current === currentKey &&
+        internalSceneRef.current
+      ) {
+        return;
       }
 
-      // Prepare scene configuration
-      const sceneConfig: UnicornSceneConfig = {
-        elementId:
-          elementRef.current.id ||
-          `unicorn-${Math.random().toString(36).slice(2, 11)}`,
-        scale,
-        dpi,
-        fps,
-        lazyLoad,
-        altText,
-        ariaLabel,
-        production,
-      };
-
-      // Set the ID if it doesn't exist
-      if (!elementRef.current.id) {
-        elementRef.current.id = sceneConfig.elementId;
-      }
-
-      // Add project source
-      if (jsonFilePath) {
-        sceneConfig.filePath = jsonFilePath;
-      } else if (projectId) {
-        sceneConfig.projectId = projectId;
-      } else {
-        throw new Error("No project ID or JSON file path provided");
-      }
-
-      // Initialize the scene using the dynamic method with a timeout
-      // This prevents infinite retries from the Unicorn Studio library
-      let timeoutId: NodeJS.Timeout | undefined;
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(
-          () => reject(new Error("Scene initialization timeout")),
-          15000
-        );
-      });
-
-      const cleanup = () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-      };
+      // Update the initialization key and flag
+      initializationKeyRef.current = currentKey;
+      hasAttemptedRef.current = true;
+      isInitializingRef.current = true;
 
       try {
-        const scene = await Promise.race([
-          window.UnicornStudio.addScene(sceneConfig),
-          timeoutPromise,
-        ]);
+        destroyScene();
 
-        cleanup();
+        if (!window.UnicornStudio?.addScene) {
+          throw new Error("UnicornStudio.addScene not found");
+        }
 
-        if (scene) {
-          internalSceneRef.current = scene;
-          // Expose the latest scene instance so parent components can use it.
-          assignSceneRef(sceneRef, scene);
-          hasAttemptedRef.current = false; // Reset on success
-          setInitError(null); // Clear any previous errors
-          isInitializingRef.current = false;
-          onLoad?.();
+        // Prepare scene configuration
+        const sceneConfig: UnicornSceneConfig = {
+          elementId:
+            elementRef.current.id ||
+            `unicorn-${Math.random().toString(36).slice(2, 11)}`,
+          scale,
+          dpi,
+          fps,
+          lazyLoad,
+          altText,
+          ariaLabel,
+          production,
+        };
+
+        if (!elementRef.current.id) {
+          elementRef.current.id = sceneConfig.elementId;
+        }
+
+        if (jsonFilePath) {
+          sceneConfig.filePath = jsonFilePath;
+        } else if (projectId) {
+          sceneConfig.projectId = projectId;
         } else {
-          isInitializingRef.current = false;
-          throw new Error("Failed to initialize scene");
+          throw new Error("No project ID or JSON file path provided");
+        }
+
+        // Initialize with a timeout to prevent infinite retries
+        let timeoutId: NodeJS.Timeout | undefined;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error("Scene initialization timeout")),
+            15000
+          );
+        });
+
+        const clearTimer = () => {
+          if (timeoutId) clearTimeout(timeoutId);
+        };
+
+        try {
+          const scene = await Promise.race([
+            window.UnicornStudio.addScene(sceneConfig),
+            timeoutPromise,
+          ]);
+
+          clearTimer();
+
+          // If the effect cleaned up while we were awaiting, destroy and bail
+          if (ignore) {
+            scene?.destroy();
+            return;
+          }
+
+          if (scene) {
+            internalSceneRef.current = scene;
+            assignSceneRef(sceneRef, scene);
+            hasAttemptedRef.current = false;
+            setInitError(null);
+            isInitializingRef.current = false;
+            onLoad?.();
+          } else {
+            isInitializingRef.current = false;
+            throw new Error("Failed to initialize scene");
+          }
+        } catch (error) {
+          clearTimer();
+          throw error;
         }
       } catch (error) {
-        cleanup();
-        throw error;
-      }
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error("Unknown error");
+        if (ignore) return;
 
-      // Sanitize error messages to not expose URLs
-      let sanitizedMessage = err.message;
-      if (
-        sanitizedMessage.includes("404") ||
-        sanitizedMessage.includes("Failed to fetch")
-      ) {
-        sanitizedMessage = "Resource not found";
-      } else if (
-        sanitizedMessage.includes("Network") ||
-        sanitizedMessage.includes("network")
-      ) {
-        sanitizedMessage = "Network error occurred";
-      } else if (sanitizedMessage.includes("timeout")) {
-        sanitizedMessage = "Loading timeout";
-      }
+        const err =
+          error instanceof Error ? error : new Error("Unknown error");
 
-      const sanitizedError = new Error(sanitizedMessage);
-      setInitError(sanitizedError);
-      isInitializingRef.current = false;
-      onError?.(sanitizedError);
+        // Sanitize error messages to not expose URLs
+        let sanitizedMessage = err.message;
+        if (
+          sanitizedMessage.includes("404") ||
+          sanitizedMessage.includes("Failed to fetch")
+        ) {
+          sanitizedMessage = "Resource not found";
+        } else if (
+          sanitizedMessage.includes("Network") ||
+          sanitizedMessage.includes("network")
+        ) {
+          sanitizedMessage = "Network error occurred";
+        } else if (sanitizedMessage.includes("timeout")) {
+          sanitizedMessage = "Loading timeout";
+        }
+
+        const sanitizedError = new Error(sanitizedMessage);
+        setInitError(sanitizedError);
+        isInitializingRef.current = false;
+        onError?.(sanitizedError);
+      }
     }
+
+    if (isScriptLoaded) {
+      void initializeScene();
+    }
+
+    return () => {
+      ignore = true;
+      destroyScene();
+    };
   }, [
-    elementRef,
     isScriptLoaded,
+    elementRef,
     jsonFilePath,
     projectId,
     production,
@@ -334,36 +347,6 @@ export function useUnicornScene({
     sceneRef,
     validationError,
   ]);
-
-  useEffect(() => {
-    let aborted = false;
-
-    if (isScriptLoaded) {
-      void initializeScene().then(() => {
-        if (aborted && internalSceneRef.current?.destroy) {
-          internalSceneRef.current.destroy();
-          internalSceneRef.current = null;
-          assignSceneRef(sceneRef, null);
-        }
-      });
-    }
-
-    return () => {
-      aborted = true;
-      destroyScene();
-    };
-  }, [isScriptLoaded, initializeScene, destroyScene, sceneRef]);
-
-  // Reset state when projectId or jsonFilePath changes
-  useEffect(() => {
-    const newKey = `${projectId || ""}-${jsonFilePath || ""}-${scale}-${dpi}-${fps}-${production ? "prod" : "dev"}`;
-    if (initializationKeyRef.current !== newKey) {
-      hasAttemptedRef.current = false;
-      setInitError(null);
-      isInitializingRef.current = false;
-      initializationKeyRef.current = ""; // Reset the key to allow fresh initialization
-    }
-  }, [projectId, jsonFilePath, scale, dpi, fps, production]);
 
   // Sync paused state with scene
   useEffect(() => {
