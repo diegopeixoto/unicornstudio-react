@@ -16,7 +16,9 @@ npm install
 - `npm run type-check` - Run TypeScript type checking without emitting files
 
 ### Testing
-No test suite exists yet. Do not attempt to run tests.
+This project uses Vitest and Testing Library with a jsdom environment.
+- `npm run test` - Run the full test suite once
+- `npm run test:watch` - Run tests in watch mode during development
 
 ### Pre-publish workflow
 Before publishing, the following commands are automatically run:
