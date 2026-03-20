@@ -336,15 +336,23 @@ export function useUnicornScene({
   ]);
 
   useEffect(() => {
-    if (isScriptLoaded) {
-      void initializeScene();
-    }
-  }, [isScriptLoaded, initializeScene]);
+    let aborted = false;
 
-  // Cleanup only on unmount
-  useEffect(() => {
-    return destroyScene;
-  }, [destroyScene]);
+    if (isScriptLoaded) {
+      void initializeScene().then(() => {
+        if (aborted && internalSceneRef.current?.destroy) {
+          internalSceneRef.current.destroy();
+          internalSceneRef.current = null;
+          assignSceneRef(sceneRef, null);
+        }
+      });
+    }
+
+    return () => {
+      aborted = true;
+      destroyScene();
+    };
+  }, [isScriptLoaded, initializeScene, destroyScene, sceneRef]);
 
   // Reset state when projectId or jsonFilePath changes
   useEffect(() => {
