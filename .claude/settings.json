@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "npx prettier --write \"$TOOL_INPUT_FILE_PATH\" 2>/dev/null || true"
+      },
+      {
+        "matcher": "Edit|Write",
+        "command": "npx tsc --noEmit 2>&1 | head -20"
+      }
+    ]
+  }
+}
