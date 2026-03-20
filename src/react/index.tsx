@@ -69,6 +69,7 @@ function UnicornScene({
   showPlaceholderWhileLoading = DEFAULT_VALUES.showPlaceholderWhileLoading,
   onLoad,
   onError,
+  sceneRef,
 }: UnicornSceneProps) {
   const elementRef = useRef<HTMLDivElement>(null);
   const [isSceneLoaded, setIsSceneLoaded] = useState(false);
@@ -92,6 +93,7 @@ function UnicornScene({
     ariaLabel: ariaLabel || altText,
     isScriptLoaded: isLoaded,
     paused,
+    sceneRef,
     onLoad: () => {
       setIsSceneLoaded(true);
       onLoad?.();

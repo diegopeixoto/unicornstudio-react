@@ -167,6 +167,15 @@ export interface UnicornSceneProps {
    * @param error - The error that occurred
    */
   onError?: (error: Error) => void;
+
+  /**
+   * Optional ref that receives the initialized Unicorn Studio scene instance.
+   *
+   * @remarks
+   * This is set after the scene finishes initializing and cleared when the
+   * scene is destroyed or re-initialized.
+   */
+  sceneRef?: React.Ref<UnicornStudioScene | null>;
 }
 
 /**

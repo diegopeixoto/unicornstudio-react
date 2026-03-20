@@ -1,5 +1,59 @@
 # Changelog
 
+## [2.1.4] - 2026-03-18
+
+### Added
+
+#### Scene Instance Ref Support
+
+- **New `sceneRef` prop**: Added support for passing a ref that receives the initialized Unicorn Studio scene instance
+  - Available in both the React and Next.js component exports
+  - Lets parent components interact with the live scene object after initialization
+  - Automatically clears the ref when the scene is destroyed or re-initialized
+
+### Usage Example
+
+```tsx
+import { useRef } from "react";
+import UnicornScene, { type UnicornStudioScene } from "unicornstudio-react";
+
+export default function MyComponent() {
+  const sceneRef = useRef<UnicornStudioScene | null>(null);
+
+  return (
+    <>
+      <UnicornScene
+        projectId="YOUR_PROJECT_EMBED_ID"
+        width={800}
+        height={600}
+        sceneRef={sceneRef}
+      />
+
+      <button onClick={() => sceneRef.current?.resize?.()}>Resize</button>
+      <button
+        onClick={() => {
+          if (sceneRef.current) {
+            sceneRef.current.paused = true;
+          }
+        }}
+      >
+        Pause
+      </button>
+    </>
+  );
+}
+```
+
+### Documentation
+
+- Added README documentation for the new `sceneRef` prop
+- Documented example scene controls using `scene.resize()` and `scene.paused = true`
+
+### Internal
+
+- Updated the Unicorn Studio SDK version from `2.1.1` to `2.1.4`
+- Synced the shared scene lifecycle hook with external refs while preserving cleanup behavior
+
 ## [1.4.33-1] - 2025-10-28
 
 ### Added
