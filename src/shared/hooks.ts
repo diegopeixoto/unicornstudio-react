@@ -162,6 +162,14 @@ export function useUnicornScene({
   const initializationKeyRef = useRef<string>("");
   const isInitializingRef = useRef(false);
 
+  // Stable refs for callbacks and sceneRef so they never trigger re-initialization
+  const onLoadRef = useRef(onLoad);
+  onLoadRef.current = onLoad;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+  const sceneRefRef = useRef(sceneRef);
+  sceneRefRef.current = sceneRef;
+
   // Validate parameters early and memoize the result to prevent loops
   const validationError = useMemo(() => {
     return validateParameters(scale, fps);
@@ -176,21 +184,21 @@ export function useUnicornScene({
       if (validationError) {
         const error = new Error(validationError);
         setInitError(error);
-        onError?.(error);
+        onErrorRef.current?.(error);
       } else {
         setInitError(null);
       }
     }
-  }, [validationError, onError]);
+  }, [validationError]);
 
   const destroyScene = useCallback(() => {
     if (internalSceneRef.current?.destroy) {
       internalSceneRef.current.destroy();
       internalSceneRef.current = null;
-      assignSceneRef(sceneRef, null);
+      assignSceneRef(sceneRefRef.current, null);
     }
     isInitializingRef.current = false;
-  }, [sceneRef]);
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -251,7 +259,7 @@ export function useUnicornScene({
         }
 
         // Initialize with a timeout to prevent infinite retries
-        let timeoutId: NodeJS.Timeout | undefined;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         const timeoutPromise = new Promise<never>((_, reject) => {
           timeoutId = setTimeout(
             () => reject(new Error("Scene initialization timeout")),
@@ -279,11 +287,11 @@ export function useUnicornScene({
 
           if (scene) {
             internalSceneRef.current = scene;
-            assignSceneRef(sceneRef, scene);
+            assignSceneRef(sceneRefRef.current, scene);
             hasAttemptedRef.current = false;
             setInitError(null);
             isInitializingRef.current = false;
-            onLoad?.();
+            onLoadRef.current?.();
           } else {
             isInitializingRef.current = false;
             throw new Error("Failed to initialize scene");
@@ -317,7 +325,7 @@ export function useUnicornScene({
         const sanitizedError = new Error(sanitizedMessage);
         setInitError(sanitizedError);
         isInitializingRef.current = false;
-        onError?.(sanitizedError);
+        onErrorRef.current?.(sanitizedError);
       }
     }
 
@@ -342,9 +350,6 @@ export function useUnicornScene({
     altText,
     ariaLabel,
     destroyScene,
-    onLoad,
-    onError,
-    sceneRef,
     validationError,
   ]);
 
