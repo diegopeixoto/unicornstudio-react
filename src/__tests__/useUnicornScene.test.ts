@@ -619,9 +619,11 @@ describe("useUnicornScene", () => {
     );
 
     // Should not throw when resize is undefined
-    act(() => {
-      observer!.simulateResize(containerEl);
-    });
+    expect(() => {
+      act(() => {
+        observer!.simulateResize(containerEl);
+      });
+    }).not.toThrow();
   });
 
   it("disconnects the ResizeObserver on unmount", async () => {
