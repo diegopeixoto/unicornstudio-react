@@ -1,6 +1,6 @@
 {
   "name": "unicornstudio-react",
-  "version": "2.1.1",
+  "version": "2.1.4",
   "description": "React component for embedding Unicorn.Studio interactive scenes with TypeScript support. Compatible with React (Vite) and Next.js.",
   "keywords": [
     "react",
@@ -21,13 +21,13 @@
   ],
   "author": "Diego Peixoto <crazypxt@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/diegopeixoto/unicornstudio-next#readme",
+  "homepage": "https://github.com/diegopeixoto/unicornstudio-react#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diegopeixoto/unicornstudio-next.git"
+    "url": "git+https://github.com/diegopeixoto/unicornstudio-react.git"
   },
   "bugs": {
-    "url": "https://github.com/diegopeixoto/unicornstudio-next/issues"
+    "url": "https://github.com/diegopeixoto/unicornstudio-react/issues"
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -52,6 +52,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "prepare": "npm run build",
@@ -67,6 +69,8 @@
     }
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
@@ -76,14 +80,16 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-react": "^7.0.0",
     "eslint-plugin-react-hooks": "^4.0.0",
+    "jsdom": "^29.0.1",
     "next": "^14.0.0",
     "prettier": "^3.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.0"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   }
 }

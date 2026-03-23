@@ -30,4 +30,4 @@
     "react/prop-types": "off",
     "@typescript-eslint/no-explicit-any": "warn"
   }
-} 
+}
