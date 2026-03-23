@@ -657,11 +657,7 @@ describe("useUnicornScene", () => {
     );
 
     await act(async () => {});
-
-    // No new observer should have been created for a null element
-    const newObservers = MockResizeObserver.instances.slice(instancesBefore);
-    const observersWithElements = newObservers.filter(
-      (o) => o.elements.size > 0,
+    expect(MockResizeObserver.instances).toHaveLength(instancesBefore);
     );
     expect(observersWithElements).toHaveLength(0);
   });
