@@ -13,7 +13,9 @@ describe("isWebGLSupported", () => {
 
   it("returns true during SSR (no window)", () => {
     const windowSpy = vi.spyOn(globalThis, "window", "get");
-    windowSpy.mockReturnValue(undefined as unknown as Window & typeof globalThis);
+    windowSpy.mockReturnValue(
+      undefined as unknown as Window & typeof globalThis,
+    );
     expect(isWebGLSupported()).toBe(true);
   });
 
@@ -22,7 +24,7 @@ describe("isWebGLSupported", () => {
       getContext: vi.fn().mockReturnValue({}),
     };
     vi.spyOn(document, "createElement").mockReturnValue(
-      mockCanvas as unknown as HTMLCanvasElement
+      mockCanvas as unknown as HTMLCanvasElement,
     );
     expect(isWebGLSupported()).toBe(true);
     expect(mockCanvas.getContext).toHaveBeenCalledWith("webgl");
@@ -33,7 +35,7 @@ describe("isWebGLSupported", () => {
       getContext: vi.fn().mockReturnValue(null),
     };
     vi.spyOn(document, "createElement").mockReturnValue(
-      mockCanvas as unknown as HTMLCanvasElement
+      mockCanvas as unknown as HTMLCanvasElement,
     );
     expect(isWebGLSupported()).toBe(false);
   });
@@ -45,7 +47,7 @@ describe("isWebGLSupported", () => {
       }),
     };
     vi.spyOn(document, "createElement").mockReturnValue(
-      mockCanvas as unknown as HTMLCanvasElement
+      mockCanvas as unknown as HTMLCanvasElement,
     );
     expect(isWebGLSupported()).toBe(false);
   });
@@ -56,19 +58,25 @@ describe("validateFPS", () => {
     expect(validateFPS(fps)).toBe(true);
   });
 
-  it.each([0, 1, 25, 45, 59, 90, 144])("returns false for invalid FPS %d", (fps) => {
-    expect(validateFPS(fps)).toBe(false);
-  });
+  it.each([0, 1, 25, 45, 59, 90, 144])(
+    "returns false for invalid FPS %d",
+    (fps) => {
+      expect(validateFPS(fps)).toBe(false);
+    },
+  );
 });
 
 describe("validateScale", () => {
-  it.each([0.25, 0.5, 0.75, 1.0])("returns true for valid scale %d", (scale) => {
+  it.each([0.25, 0.5, 0.75, 1])("returns true for valid scale %d", (scale) => {
     expect(validateScale(scale)).toBe(true);
   });
 
-  it.each([0, 0.1, 0.24, 1.01, 1.5, 2])("returns false for invalid scale %d", (scale) => {
-    expect(validateScale(scale)).toBe(false);
-  });
+  it.each([0, 0.1, 0.24, 1.01, 1.5, 2])(
+    "returns false for invalid scale %d",
+    (scale) => {
+      expect(validateScale(scale)).toBe(false);
+    },
+  );
 });
 
 describe("validateParameters", () => {

@@ -49,8 +49,12 @@ export function useUnicornStudioScript(): {
 
   const handleScriptLoad = useCallback(() => {
     // Only set to true if not already true to prevent duplicate triggers
-    setIsLoaded(prev => {
-      if (!prev && typeof window !== 'undefined' && (window as any).UnicornStudio) {
+    setIsLoaded((prev) => {
+      if (
+        !prev &&
+        typeof window !== "undefined" &&
+        (window as any).UnicornStudio
+      ) {
         setError(null);
         return true;
       }
@@ -65,7 +69,11 @@ export function useUnicornStudioScript(): {
 
   // Check if UnicornStudio is already available on mount
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).UnicornStudio && !isLoaded) {
+    if (
+      typeof window !== "undefined" &&
+      (window as any).UnicornStudio &&
+      !isLoaded
+    ) {
       setIsLoaded(true);
       setError(null);
     }

@@ -39,14 +39,14 @@ describe("UnicornScene (React)", () => {
 
   it("applies custom className", () => {
     const { container } = render(
-      <UnicornScene projectId="test-id" className="my-class" />
+      <UnicornScene projectId="test-id" className="my-class" />,
     );
     expect(container.firstElementChild).toHaveClass("my-class");
   });
 
   it("sets CSS custom properties for dimensions", () => {
     const { container } = render(
-      <UnicornScene projectId="test-id" width={800} height={600} />
+      <UnicornScene projectId="test-id" width={800} height={600} />,
     );
     const el = container.firstElementChild as HTMLElement;
     expect(el.style.getPropertyValue("--unicorn-width")).toBe("800px");
@@ -55,7 +55,7 @@ describe("UnicornScene (React)", () => {
 
   it("accepts string dimensions", () => {
     const { container } = render(
-      <UnicornScene projectId="test-id" width="50vw" height="100vh" />
+      <UnicornScene projectId="test-id" width="50vw" height="100vh" />,
     );
     const el = container.firstElementChild as HTMLElement;
     expect(el.style.getPropertyValue("--unicorn-width")).toBe("50vw");
@@ -84,7 +84,7 @@ describe("UnicornScene (React)", () => {
         projectId="test-id"
         placeholder="/loading.png"
         showPlaceholderWhileLoading={true}
-      />
+      />,
     );
     const img = screen.getByAltText("Scene");
     expect(img).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("UnicornScene (React)", () => {
         projectId="test-id"
         placeholderClassName="skeleton"
         showPlaceholderWhileLoading={true}
-      />
+      />,
     );
     const placeholder = container.querySelector(".skeleton");
     expect(placeholder).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe("UnicornScene (React)", () => {
         projectId="test-id"
         placeholder={<span data-testid="custom">Loading...</span>}
         showPlaceholderWhileLoading={true}
-      />
+      />,
     );
     expect(screen.getByTestId("custom")).toBeInTheDocument();
   });
@@ -124,7 +124,7 @@ describe("UnicornScene (React)", () => {
         projectId="test-id"
         placeholder="/error.png"
         showPlaceholderOnError={true}
-      />
+      />,
     );
     expect(screen.queryByText("Error loading scene")).not.toBeInTheDocument();
   });
@@ -148,7 +148,7 @@ describe("UnicornScene (React)", () => {
         ariaLabel="Custom label"
         production={false}
         paused={true}
-      />
+      />,
     );
 
     expect(mockUseUnicornScene).toHaveBeenCalledWith(
@@ -163,7 +163,7 @@ describe("UnicornScene (React)", () => {
         production: false,
         paused: true,
         isScriptLoaded: true,
-      })
+      }),
     );
   });
 
@@ -180,7 +180,7 @@ describe("UnicornScene (React)", () => {
     expect(mockUseUnicornScene).toHaveBeenCalledWith(
       expect.objectContaining({
         ariaLabel: "My Alt",
-      })
+      }),
     );
   });
 });

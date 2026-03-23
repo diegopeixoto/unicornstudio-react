@@ -75,10 +75,7 @@ function UnicornScene({
   const [isSceneLoaded, setIsSceneLoaded] = useState(false);
   const [webGLSupported, setWebGLSupported] = useState(true);
 
-  const {
-    isLoaded,
-    error: scriptError,
-  } = useUnicornStudioScript(sdkUrl);
+  const { isLoaded, error: scriptError } = useUnicornStudioScript(sdkUrl);
 
   const { error: sceneError } = useUnicornScene({
     elementRef,

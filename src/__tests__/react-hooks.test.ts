@@ -19,18 +19,16 @@ describe("useUnicornStudioScript (React)", () => {
 
   it("starts with isLoaded false and no error", () => {
     const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js")
+      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
     );
     expect(result.current.isLoaded).toBe(false);
     expect(result.current.error).toBeNull();
   });
 
   it("creates a script element in the document head", () => {
-    renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js")
-    );
+    renderHook(() => useUnicornStudioScript("https://cdn.example.com/sdk.js"));
     const script = document.querySelector(
-      'script[src="https://cdn.example.com/sdk.js"]'
+      'script[src="https://cdn.example.com/sdk.js"]',
     );
     expect(script).toBeTruthy();
     expect(script?.getAttribute("src")).toBe("https://cdn.example.com/sdk.js");
@@ -38,11 +36,11 @@ describe("useUnicornStudioScript (React)", () => {
 
   it("sets isLoaded to true on script load event", async () => {
     const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js")
+      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
     );
 
     const script = document.querySelector(
-      'script[src="https://cdn.example.com/sdk.js"]'
+      'script[src="https://cdn.example.com/sdk.js"]',
     ) as HTMLScriptElement;
 
     await act(async () => {
@@ -55,11 +53,11 @@ describe("useUnicornStudioScript (React)", () => {
 
   it("sets error on script load failure", async () => {
     const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js")
+      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
     );
 
     const script = document.querySelector(
-      'script[src="https://cdn.example.com/sdk.js"]'
+      'script[src="https://cdn.example.com/sdk.js"]',
     ) as HTMLScriptElement;
 
     await act(async () => {
@@ -75,11 +73,11 @@ describe("useUnicornStudioScript (React)", () => {
     // Pre-add a loaded script
     const existing = document.createElement("script");
     existing.src = "https://cdn.example.com/sdk.js";
-    existing.setAttribute("data-loaded", "true");
+    existing.dataset.loaded = "true";
     document.head.appendChild(existing);
 
     const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js")
+      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
     );
 
     expect(result.current.isLoaded).toBe(true);
@@ -87,7 +85,7 @@ describe("useUnicornStudioScript (React)", () => {
 
   it("provides handleScriptLoad and handleScriptError callbacks", () => {
     const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js")
+      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
     );
     expect(typeof result.current.handleScriptLoad).toBe("function");
     expect(typeof result.current.handleScriptError).toBe("function");

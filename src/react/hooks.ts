@@ -50,11 +50,11 @@ export function useUnicornStudioScript(scriptUrl: string): {
   useEffect(() => {
     // Check if script is already loaded
     const existingScript = document.querySelector(
-      `script[src="${scriptUrl}"]`
+      `script[src="${scriptUrl}"]`,
     ) as HTMLScriptElement;
 
     if (existingScript) {
-      if (existingScript.getAttribute("data-loaded") === "true") {
+      if (existingScript.dataset.loaded === "true") {
         setIsLoaded(true);
         return;
       }
@@ -74,7 +74,7 @@ export function useUnicornStudioScript(scriptUrl: string): {
     script.src = scriptUrl;
     script.async = true;
     script.addEventListener("load", () => {
-      script.setAttribute("data-loaded", "true");
+      script.dataset.loaded = "true";
       handleScriptLoad();
     });
     script.addEventListener("error", handleScriptError);

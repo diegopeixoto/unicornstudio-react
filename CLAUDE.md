@@ -5,23 +5,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Setup
+
 ```bash
 npm install
 ```
 
 ### Development
+
 - `npm run dev` - Start development with watch mode
 - `npm run build` - Build the library (CommonJS, ESM, and TypeScript definitions)
 - `npm run lint` - Run ESLint on .ts and .tsx files
 - `npm run type-check` - Run TypeScript type checking without emitting files
 
 ### Testing
+
 This project uses Vitest and Testing Library with a jsdom environment.
+
 - `npm run test` - Run the full test suite once
 - `npm run test:watch` - Run tests in watch mode during development
 
 ### Pre-publish workflow
+
 Before publishing, the following commands are automatically run:
+
 1. `npm run lint`
 2. `npm run type-check`
 3. `npm run build`
@@ -31,6 +37,7 @@ Before publishing, the following commands are automatically run:
 This is a React component library that wraps Unicorn Studio's WebGL animation system with support for both standard React and Next.js frameworks. The codebase follows a clean, modular structure:
 
 ### Directory Structure
+
 ```text
 src/
 ├── shared/           # Shared code between React and Next.js versions
@@ -49,6 +56,7 @@ src/
 ```
 
 ### Core Components
+
 - **UnicornScene** (React): Uses standard HTML `<script>` and `<img>` elements for broad compatibility
 - **UnicornScene** (Next.js): Uses Next.js `Script` and `Image` components for optimization
 - **Shared Hooks**:
@@ -58,6 +66,7 @@ src/
   - `useUnicornStudioScript` (Next.js): Works with Next.js Script component
 
 ### Key Design Decisions
+
 1. **Dual Framework Support**: Separate optimized implementations for React and Next.js
 2. **Shared Core Logic**: Common functionality extracted to shared modules
 3. **Framework-Specific Optimizations**: Next.js version uses Script/Image components, React version uses standard elements
@@ -66,14 +75,16 @@ src/
 6. **Optional Next.js Dependency**: Next.js is an optional peer dependency
 
 ### Build Configuration
+
 - **tsup**: Handles bundling with dual entry points
-- **Entry Points**: 
+- **Entry Points**:
   - `src/index.tsx` → `dist/index.*` (React version)
   - `src/next/index.tsx` → `dist/next.*` (Next.js version)
 - **Outputs**: Both CJS and ESM formats with TypeScript definitions
 - **Externals**: react, react-dom (required), next (optional)
 
 ### Important Constraints
+
 1. This package depends on Unicorn Studio's proprietary script loaded from their CDN
 2. The package version follows Unicorn Studio's script version (e.g., 1.4.26)
 3. React and React-DOM are required peer dependencies

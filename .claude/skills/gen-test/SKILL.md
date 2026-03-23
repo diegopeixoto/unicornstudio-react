@@ -11,6 +11,7 @@ Generate tests for the unicornstudio-react library.
 ## Setup (if no test framework is configured)
 
 If no test config exists yet:
+
 1. Recommend installing vitest + @testing-library/react + jsdom
 2. Create a vitest.config.ts at the project root
 3. Add a `test` script to package.json

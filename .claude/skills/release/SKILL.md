@@ -18,6 +18,7 @@ Follow these steps in order:
 ## 2. Determine version bump
 
 Ask the user what type of release this is:
+
 - **patch** (bug fixes, dependency updates)
 - **minor** (new features, backward-compatible)
 - **major** (breaking changes)
