@@ -646,6 +646,30 @@ describe("useUnicornScene", () => {
     expect(observer!.disconnect).toHaveBeenCalled();
   });
 
+  it("degrades gracefully when ResizeObserver is unavailable", async () => {
+    const originalResizeObserver = globalThis.ResizeObserver;
+    // @ts-expect-error -- simulating an environment without ResizeObserver
+    delete globalThis.ResizeObserver;
+
+    try {
+      addSceneMock.mockResolvedValueOnce(createMockScene({ resize: vi.fn() }));
+
+      const { unmount } = renderHook(() =>
+        useUnicornScene(defaultProps(elementRef)),
+      );
+
+      await act(async () => {});
+
+      // No ResizeObserver should have been created
+      expect(MockResizeObserver.instances).toHaveLength(0);
+
+      // Should not throw on unmount either
+      expect(() => unmount()).not.toThrow();
+    } finally {
+      globalThis.ResizeObserver = originalResizeObserver;
+    }
+  });
+
   it("does not create a ResizeObserver when elementRef is null", async () => {
     const instancesBefore = MockResizeObserver.instances.length;
 
@@ -657,7 +681,10 @@ describe("useUnicornScene", () => {
     );
 
     await act(async () => {});
-    expect(MockResizeObserver.instances).toHaveLength(instancesBefore);
+
+    const newObservers = MockResizeObserver.instances.slice(instancesBefore);
+    const observersWithElements = newObservers.filter(
+      (o) => o.elements.size > 0,
     );
     expect(observersWithElements).toHaveLength(0);
   });

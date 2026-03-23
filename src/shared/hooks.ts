@@ -417,7 +417,7 @@ export function useUnicornScene({
   // Observe container resize and call scene.resize() so the canvas adapts
   useEffect(() => {
     const el = elementRef.current;
-    if (!el) return;
+    if (!el || typeof ResizeObserver === "undefined") return;
 
     const observer = new ResizeObserver(() => {
       internalSceneRef.current?.resize?.();
