@@ -90,11 +90,14 @@ export interface UseUnicornSceneParams {
 }
 
 /**
- * Keeps an external ref in sync with the current scene instance.
+ * Synchronizes an external React ref (callback or object ref) with the given scene instance.
+ *
+ * @param ref - A React ref callback or mutable object ref to receive the scene instance; if `undefined`, no action is taken
+ * @param value - The current `UnicornStudioScene` instance or `null` to clear the ref
  */
 function assignSceneRef(
   ref: React.Ref<UnicornStudioScene | null> | undefined,
-  value: UnicornStudioScene | null
+  value: UnicornStudioScene | null,
 ) {
   if (!ref) return;
 
@@ -217,6 +220,9 @@ export function useUnicornScene({
         initializationKeyRef.current === currentKey &&
         internalSceneRef.current
       ) {
+        console.log(
+          "Scene already initialized with this configuration, skipping...",
+        );
         return;
       }
 
@@ -263,7 +269,7 @@ export function useUnicornScene({
         const timeoutPromise = new Promise<never>((_, reject) => {
           timeoutId = setTimeout(
             () => reject(new Error("Scene initialization timeout")),
-            15000
+            15000,
           );
         });
 
@@ -303,8 +309,7 @@ export function useUnicornScene({
       } catch (error) {
         if (ignore) return;
 
-        const err =
-          error instanceof Error ? error : new Error("Unknown error");
+        const err = error instanceof Error ? error : new Error("Unknown error");
 
         // Sanitize error messages to not expose URLs
         let sanitizedMessage = err.message;
