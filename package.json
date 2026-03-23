@@ -21,13 +21,13 @@
   ],
   "author": "Diego Peixoto <crazypxt@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/diegopeixoto/unicornstudio-next#readme",
+  "homepage": "https://github.com/diegopeixoto/unicornstudio-react#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diegopeixoto/unicornstudio-next.git"
+    "url": "git+https://github.com/diegopeixoto/unicornstudio-react.git"
   },
   "bugs": {
-    "url": "https://github.com/diegopeixoto/unicornstudio-next/issues"
+    "url": "https://github.com/diegopeixoto/unicornstudio-react/issues"
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -90,6 +90,6 @@
     "vitest": "^4.1.0"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -7,7 +7,7 @@
       },
       {
         "matcher": "Edit|Write",
-        "command": "npx tsc --noEmit 2>&1 | head -20"
+        "command": "bash -o pipefail -c 'npx tsc --noEmit 2>&1 | head -20'"
       }
     ]
   }

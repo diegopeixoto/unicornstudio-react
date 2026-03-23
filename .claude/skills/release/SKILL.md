@@ -12,6 +12,7 @@ Follow these steps in order:
 
 - Run `git status` to ensure working tree is clean
 - Run `npm run lint` and `npm run type-check` to verify no issues
+- Run `npm test` to execute the project's test suite
 - Run `npm run build` to verify the build succeeds
 
 ## 2. Determine version bump

@@ -31,7 +31,7 @@ Before publishing, the following commands are automatically run:
 This is a React component library that wraps Unicorn Studio's WebGL animation system with support for both standard React and Next.js frameworks. The codebase follows a clean, modular structure:
 
 ### Directory Structure
-```
+```text
 src/
 ├── shared/           # Shared code between React and Next.js versions
 │   ├── types.ts      # TypeScript type definitions
@@ -78,7 +78,7 @@ src/
 2. The package version follows Unicorn Studio's script version (e.g., 1.4.26)
 3. React and React-DOM are required peer dependencies
 4. Next.js is an optional peer dependency (only needed for `/next` import)
-5. The component name in npm is `unicornstudio-react` (different from the repo name `unicorn-next`)
+5. The npm package name and repo name are both `unicornstudio-react` (https://github.com/diegopeixoto/unicornstudio-react)
 
 ## Code Style
 
