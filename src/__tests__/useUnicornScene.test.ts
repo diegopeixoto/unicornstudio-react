@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useUnicornScene } from "../shared/hooks";
 import type { UnicornStudioScene } from "../shared/types";
+import { MockResizeObserver } from "./setup";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,6 +63,7 @@ describe("useUnicornScene", () => {
     vi.restoreAllMocks();
     delete (window as Record<string, unknown>).UnicornStudio;
     containerEl.remove();
+    MockResizeObserver.instances.length = 0;
   });
 
   // -----------------------------------------------------------------------
@@ -103,9 +105,7 @@ describe("useUnicornScene", () => {
     addSceneMock.mockResolvedValueOnce(scene);
     const onLoad = vi.fn();
 
-    renderHook(() =>
-      useUnicornScene({ ...defaultProps(elementRef), onLoad }),
-    );
+    renderHook(() => useUnicornScene({ ...defaultProps(elementRef), onLoad }));
 
     await act(async () => {});
 
@@ -135,10 +135,9 @@ describe("useUnicornScene", () => {
     const scene = createMockScene();
     addSceneMock.mockResolvedValue(scene);
 
-    const { rerender } = renderHook(
-      (props) => useUnicornScene(props),
-      { initialProps: { ...defaultProps(elementRef), onLoad: () => {} } },
-    );
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: { ...defaultProps(elementRef), onLoad: () => {} },
+    });
 
     await act(async () => {});
     expect(addSceneMock).toHaveBeenCalledTimes(1);
@@ -160,10 +159,9 @@ describe("useUnicornScene", () => {
     const scene2 = createMockScene();
     addSceneMock.mockResolvedValueOnce(scene1).mockResolvedValueOnce(scene2);
 
-    const { rerender } = renderHook(
-      (props) => useUnicornScene(props),
-      { initialProps: defaultProps(elementRef) },
-    );
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: defaultProps(elementRef),
+    });
 
     await act(async () => {});
     expect(addSceneMock).toHaveBeenCalledTimes(1);
@@ -206,14 +204,16 @@ describe("useUnicornScene", () => {
     let resolveFirst!: (s: UnicornStudioScene) => void;
     addSceneMock
       .mockImplementationOnce(
-        () => new Promise<UnicornStudioScene>((r) => { resolveFirst = r; }),
+        () =>
+          new Promise<UnicornStudioScene>((r) => {
+            resolveFirst = r;
+          }),
       )
       .mockResolvedValueOnce(createMockScene());
 
-    const { rerender } = renderHook(
-      (props) => useUnicornScene(props),
-      { initialProps: defaultProps(elementRef) },
-    );
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: defaultProps(elementRef),
+    });
 
     await act(async () => {});
     expect(addSceneMock).toHaveBeenCalledTimes(1);
@@ -226,7 +226,9 @@ describe("useUnicornScene", () => {
 
     // Resolve the first (its ignore flag is set, so the scene gets destroyed)
     const lateScene = createMockScene();
-    await act(async () => { resolveFirst(lateScene); });
+    await act(async () => {
+      resolveFirst(lateScene);
+    });
     expect(lateScene.destroy).toHaveBeenCalled();
   });
 
@@ -279,15 +281,12 @@ describe("useUnicornScene", () => {
     const oldRef: { current: UnicornStudioScene | null } = { current: null };
     const newRef: { current: UnicornStudioScene | null } = { current: null };
 
-    const { rerender } = renderHook(
-      (props) => useUnicornScene(props),
-      {
-        initialProps: {
-          ...defaultProps(elementRef),
-          sceneRef: oldRef,
-        },
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: {
+        ...defaultProps(elementRef),
+        sceneRef: oldRef,
       },
-    );
+    });
 
     await act(async () => {});
     expect(oldRef.current).toBe(scene);
@@ -307,15 +306,12 @@ describe("useUnicornScene", () => {
     const oldRefFn = vi.fn();
     const newRefFn = vi.fn();
 
-    const { rerender } = renderHook(
-      (props) => useUnicornScene(props),
-      {
-        initialProps: {
-          ...defaultProps(elementRef),
-          sceneRef: oldRefFn,
-        },
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: {
+        ...defaultProps(elementRef),
+        sceneRef: oldRefFn,
       },
-    );
+    });
 
     await act(async () => {});
     expect(oldRefFn).toHaveBeenCalledWith(scene);
@@ -337,10 +333,9 @@ describe("useUnicornScene", () => {
     const scene = createMockScene({ paused: false });
     addSceneMock.mockResolvedValueOnce(scene);
 
-    const { rerender } = renderHook(
-      (props) => useUnicornScene(props),
-      { initialProps: { ...defaultProps(elementRef), paused: false } },
-    );
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: { ...defaultProps(elementRef), paused: false },
+    });
 
     await act(async () => {});
 
@@ -407,7 +402,10 @@ describe("useUnicornScene", () => {
     const scene = createMockScene();
     let resolveAddScene!: (s: UnicornStudioScene) => void;
     addSceneMock.mockImplementationOnce(
-      () => new Promise<UnicornStudioScene>((r) => { resolveAddScene = r; }),
+      () =>
+        new Promise<UnicornStudioScene>((r) => {
+          resolveAddScene = r;
+        }),
     );
 
     const { unmount } = renderHook(() =>
@@ -435,10 +433,9 @@ describe("useUnicornScene", () => {
     addSceneMock.mockResolvedValue(scene);
 
     const props = defaultProps(elementRef);
-    const { rerender } = renderHook(
-      (p) => useUnicornScene(p),
-      { initialProps: props },
-    );
+    const { rerender } = renderHook((p) => useUnicornScene(p), {
+      initialProps: props,
+    });
 
     await act(async () => {});
     expect(addSceneMock).toHaveBeenCalledTimes(1);
@@ -580,5 +577,90 @@ describe("useUnicornScene", () => {
 
     expect(onError).toHaveBeenCalled();
     expect(result.current.error).toBeInstanceOf(Error);
+  });
+
+  // -----------------------------------------------------------------------
+  // ResizeObserver – container resize triggers scene.resize()
+  // -----------------------------------------------------------------------
+
+  it("calls scene.resize() when the container is resized", async () => {
+    const resizeFn = vi.fn();
+    const scene = createMockScene({ resize: resizeFn });
+    addSceneMock.mockResolvedValueOnce(scene);
+
+    renderHook(() => useUnicornScene(defaultProps(elementRef)));
+
+    await act(async () => {});
+
+    // Find the observer watching our container
+    const observer = MockResizeObserver.instances.find((o) =>
+      o.elements.has(containerEl),
+    );
+    expect(observer).toBeDefined();
+
+    // Simulate a container resize
+    act(() => {
+      observer!.simulateResize(containerEl);
+    });
+
+    expect(resizeFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles scene.resize being undefined gracefully", async () => {
+    const scene = createMockScene({ resize: undefined });
+    addSceneMock.mockResolvedValueOnce(scene);
+
+    renderHook(() => useUnicornScene(defaultProps(elementRef)));
+
+    await act(async () => {});
+
+    const observer = MockResizeObserver.instances.find((o) =>
+      o.elements.has(containerEl),
+    );
+
+    // Should not throw when resize is undefined
+    act(() => {
+      observer!.simulateResize(containerEl);
+    });
+  });
+
+  it("disconnects the ResizeObserver on unmount", async () => {
+    const scene = createMockScene({ resize: vi.fn() });
+    addSceneMock.mockResolvedValueOnce(scene);
+
+    const { unmount } = renderHook(() =>
+      useUnicornScene(defaultProps(elementRef)),
+    );
+
+    await act(async () => {});
+
+    const observer = MockResizeObserver.instances.find((o) =>
+      o.elements.has(containerEl),
+    );
+    expect(observer).toBeDefined();
+
+    unmount();
+
+    expect(observer!.disconnect).toHaveBeenCalled();
+  });
+
+  it("does not create a ResizeObserver when elementRef is null", async () => {
+    const instancesBefore = MockResizeObserver.instances.length;
+
+    renderHook(() =>
+      useUnicornScene({
+        ...defaultProps({ current: null }),
+        isScriptLoaded: true,
+      }),
+    );
+
+    await act(async () => {});
+
+    // No new observer should have been created for a null element
+    const newObservers = MockResizeObserver.instances.slice(instancesBefore);
+    const observersWithElements = newObservers.filter(
+      (o) => o.elements.size > 0,
+    );
+    expect(observersWithElements).toHaveLength(0);
   });
 });
