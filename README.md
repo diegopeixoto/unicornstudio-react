@@ -6,6 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18%2B-blue.svg)](https://reactjs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-13%2B-black.svg)](https://nextjs.org/)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=diegopeixoto_unicornstudio-react&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=diegopeixoto_unicornstudio-react)
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/edit/unicornstudio-react-example?file=app%2Fpage.tsx)
 
@@ -235,28 +236,28 @@ The component now supports flexible placeholder options that can be displayed wh
 
 ## Props
 
-| Prop                          | Type                     | Default   | Description                                                                |
-| ----------------------------- | ------------------------ | --------- | -------------------------------------------------------------------------- |
-| `projectId`                   | `string`                 | -         | The Unicorn Studio project embed ID (required if not using `jsonFilePath`) |
-| `jsonFilePath`                | `string`                 | -         | Path to a self-hosted JSON file (required if not using `projectId`)        |
-| `width`                       | `number \| string`       | `"100%"`  | Width of the scene container                                               |
-| `height`                      | `number \| string`       | `"100%"`  | Height of the scene container                                              |
-| `scale`                       | `number`                 | `1`       | Rendering scale (0.25-1, lower values improve performance)                 |
-| `dpi`                         | `number`                 | `1.5`     | Pixel ratio for rendering quality                                          |
-| `fps`                         | `number`                 | `60`      | Frames per second (0-120)                                                  |
-| `altText`                     | `string`                 | `"Scene"` | Alternative text for accessibility                                         |
-| `ariaLabel`                   | `string`                 | -         | ARIA label for the scene                                                   |
-| `className`                   | `string`                 | `""`      | Additional CSS classes                                                     |
-| `lazyLoad`                    | `boolean`                | `true`    | Load scene only when scrolled into view                                    |
-| `production`                  | `boolean`                | `true`    | Use production CDN                                                         |
-| `paused`                      | `boolean`                | `false`   | Pause or resume the scene animation                                        |
-| `placeholder`                 | `string \| ReactNode`    | -         | Placeholder content (image URL or React component)                         |
-| `placeholderClassName`        | `string`                 | -         | CSS classes for placeholder div (when using CSS placeholder)               |
-| `showPlaceholderOnError`      | `boolean`                | `true`    | Show placeholder when scene fails to load                                  |
-| `showPlaceholderWhileLoading` | `boolean`                | `true`    | Show placeholder while scene is loading                                    |
-| `onLoad`                      | `() => void`             | -         | Callback when scene loads successfully                                     |
-| `onError`                     | `(error: Error) => void` | -         | Callback when scene fails to load                                          |
-| `sceneRef`                    | `Ref<UnicornStudioScene \| null>` | - | Ref that receives the initialized Unicorn Studio scene instance            |
+| Prop                          | Type                              | Default   | Description                                                                |
+| ----------------------------- | --------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `projectId`                   | `string`                          | -         | The Unicorn Studio project embed ID (required if not using `jsonFilePath`) |
+| `jsonFilePath`                | `string`                          | -         | Path to a self-hosted JSON file (required if not using `projectId`)        |
+| `width`                       | `number \| string`                | `"100%"`  | Width of the scene container                                               |
+| `height`                      | `number \| string`                | `"100%"`  | Height of the scene container                                              |
+| `scale`                       | `number`                          | `1`       | Rendering scale (0.25-1, lower values improve performance)                 |
+| `dpi`                         | `number`                          | `1.5`     | Pixel ratio for rendering quality                                          |
+| `fps`                         | `number`                          | `60`      | Frames per second (0-120)                                                  |
+| `altText`                     | `string`                          | `"Scene"` | Alternative text for accessibility                                         |
+| `ariaLabel`                   | `string`                          | -         | ARIA label for the scene                                                   |
+| `className`                   | `string`                          | `""`      | Additional CSS classes                                                     |
+| `lazyLoad`                    | `boolean`                         | `true`    | Load scene only when scrolled into view                                    |
+| `production`                  | `boolean`                         | `true`    | Use production CDN                                                         |
+| `paused`                      | `boolean`                         | `false`   | Pause or resume the scene animation                                        |
+| `placeholder`                 | `string \| ReactNode`             | -         | Placeholder content (image URL or React component)                         |
+| `placeholderClassName`        | `string`                          | -         | CSS classes for placeholder div (when using CSS placeholder)               |
+| `showPlaceholderOnError`      | `boolean`                         | `true`    | Show placeholder when scene fails to load                                  |
+| `showPlaceholderWhileLoading` | `boolean`                         | `true`    | Show placeholder while scene is loading                                    |
+| `onLoad`                      | `() => void`                      | -         | Callback when scene loads successfully                                     |
+| `onError`                     | `(error: Error) => void`          | -         | Callback when scene fails to load                                          |
+| `sceneRef`                    | `Ref<UnicornStudioScene \| null>` | -         | Ref that receives the initialized Unicorn Studio scene instance            |
 
 ## Styling
 
