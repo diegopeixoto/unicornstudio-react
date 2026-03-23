@@ -7,8 +7,6 @@ import {
 } from "../shared/utils";
 
 describe("isWebGLSupported", () => {
-  const originalWindow = globalThis.window;
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
