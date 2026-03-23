@@ -266,7 +266,16 @@ export function useUnicornScene({
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
   const sceneRefRef = useRef(sceneRef);
-  sceneRefRef.current = sceneRef;
+  const prevSceneRef = useRef(sceneRef);
+
+  // Sync external sceneRef when the prop changes: null the old ref and
+  // forward the current scene (if any) to the new one.
+  if (sceneRef !== prevSceneRef.current) {
+    assignSceneRef(prevSceneRef.current, null);
+    sceneRefRef.current = sceneRef;
+    prevSceneRef.current = sceneRef;
+    assignSceneRef(sceneRef, internalSceneRef.current);
+  }
 
   // Validate parameters early and memoize the result to prevent loops
   const validationError = useMemo(() => {
@@ -315,9 +324,6 @@ export function useUnicornScene({
         initializationKeyRef.current === currentKey &&
         internalSceneRef.current
       ) {
-        console.log(
-          "Scene already initialized with this configuration, skipping...",
-        );
         return;
       }
 

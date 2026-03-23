@@ -9,8 +9,13 @@ vi.mock("next/script", () => ({
 }));
 
 vi.mock("next/image", () => ({
-  default: (props: Record<string, unknown>) => (
-    <img data-testid="next-image" {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
+  default: ({ priority, fill, ...props }: Record<string, unknown>) => (
+    <img
+      data-testid="next-image"
+      data-priority={priority ? "true" : undefined}
+      data-fill={fill ? "true" : undefined}
+      {...(props as React.ImgHTMLAttributes<HTMLImageElement>)}
+    />
   ),
 }));
 

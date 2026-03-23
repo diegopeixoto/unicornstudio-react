@@ -272,6 +272,63 @@ describe("useUnicornScene", () => {
     expect(sceneObjRef.current).toBe(scene);
   });
 
+  it("rerender-with-new-ref: nulls old ref and assigns scene to new ref", async () => {
+    const scene = createMockScene();
+    addSceneMock.mockResolvedValue(scene);
+
+    const oldRef: { current: UnicornStudioScene | null } = { current: null };
+    const newRef: { current: UnicornStudioScene | null } = { current: null };
+
+    const { rerender } = renderHook(
+      (props) => useUnicornScene(props),
+      {
+        initialProps: {
+          ...defaultProps(elementRef),
+          sceneRef: oldRef,
+        },
+      },
+    );
+
+    await act(async () => {});
+    expect(oldRef.current).toBe(scene);
+
+    // Replace sceneRef prop with a new ref
+    rerender({ ...defaultProps(elementRef), sceneRef: newRef });
+
+    // Old ref should be nulled, new ref should receive the scene
+    expect(oldRef.current).toBeNull();
+    expect(newRef.current).toBe(scene);
+  });
+
+  it("rerender-with-new-callback-ref: nulls old and assigns to new", async () => {
+    const scene = createMockScene();
+    addSceneMock.mockResolvedValue(scene);
+
+    const oldRefFn = vi.fn();
+    const newRefFn = vi.fn();
+
+    const { rerender } = renderHook(
+      (props) => useUnicornScene(props),
+      {
+        initialProps: {
+          ...defaultProps(elementRef),
+          sceneRef: oldRefFn,
+        },
+      },
+    );
+
+    await act(async () => {});
+    expect(oldRefFn).toHaveBeenCalledWith(scene);
+
+    // Replace with new callback ref
+    rerender({ ...defaultProps(elementRef), sceneRef: newRefFn });
+
+    // Old callback should have been called with null
+    expect(oldRefFn).toHaveBeenCalledWith(null);
+    // New callback should receive the current scene
+    expect(newRefFn).toHaveBeenCalledWith(scene);
+  });
+
   // -----------------------------------------------------------------------
   // Paused state synchronization
   // -----------------------------------------------------------------------
