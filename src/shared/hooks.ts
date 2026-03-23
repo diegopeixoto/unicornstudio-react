@@ -8,6 +8,95 @@ import type {
 import { validateParameters } from "./utils";
 
 /**
+ * Sanitizes error messages to avoid exposing internal URLs or sensitive details.
+ */
+function sanitizeErrorMessage(message: string): string {
+  if (message.includes("404") || message.includes("Failed to fetch")) {
+    return "Resource not found";
+  }
+  if (message.includes("Network") || message.includes("network")) {
+    return "Network error occurred";
+  }
+  if (message.includes("timeout")) {
+    return "Loading timeout";
+  }
+  return message;
+}
+
+/**
+ * Builds the scene configuration object from the given parameters and DOM element.
+ *
+ * @throws If neither `jsonFilePath` nor `projectId` is provided
+ */
+function buildSceneConfig(
+  element: HTMLDivElement,
+  params: {
+    jsonFilePath?: string;
+    projectId?: string;
+    scale: ScaleRange;
+    dpi: number;
+    fps: ValidFPS;
+    lazyLoad: boolean;
+    altText: string;
+    ariaLabel: string;
+    production?: boolean;
+  },
+): UnicornSceneConfig {
+  const elementId =
+    element.id || `unicorn-${Math.random().toString(36).slice(2, 11)}`;
+
+  if (!element.id) {
+    element.id = elementId;
+  }
+
+  const config: UnicornSceneConfig = {
+    elementId,
+    scale: params.scale,
+    dpi: params.dpi,
+    fps: params.fps,
+    lazyLoad: params.lazyLoad,
+    altText: params.altText,
+    ariaLabel: params.ariaLabel,
+    production: params.production,
+  };
+
+  if (params.jsonFilePath) {
+    config.filePath = params.jsonFilePath;
+  } else if (params.projectId) {
+    config.projectId = params.projectId;
+  } else {
+    throw new Error("No project ID or JSON file path provided");
+  }
+
+  return config;
+}
+
+const INIT_TIMEOUT_MS = 15000;
+
+/**
+ * Wraps a promise with a timeout, rejecting if it doesn't resolve in time.
+ * Ensures the timer is always cleaned up.
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number = INIT_TIMEOUT_MS,
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(new Error("Scene initialization timeout")),
+      ms,
+    );
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
+/**
  * Parameters for the useUnicornScene hook.
  */
 export interface UseUnicornSceneParams {
@@ -226,23 +315,23 @@ export function useUnicornScene({
         return;
       }
 
-      // Update the initialization key and flag
+      // Update the initialization key
       initializationKeyRef.current = currentKey;
       hasAttemptedRef.current = true;
-      isInitializingRef.current = true;
 
       try {
         destroyScene();
+
+        // Set the flag after destroyScene() which unconditionally clears it
+        isInitializingRef.current = true;
 
         if (!window.UnicornStudio?.addScene) {
           throw new Error("UnicornStudio.addScene not found");
         }
 
-        // Prepare scene configuration
-        const sceneConfig: UnicornSceneConfig = {
-          elementId:
-            elementRef.current.id ||
-            `unicorn-${Math.random().toString(36).slice(2, 11)}`,
+        const sceneConfig = buildSceneConfig(elementRef.current, {
+          jsonFilePath,
+          projectId,
           scale,
           dpi,
           fps,
@@ -250,84 +339,34 @@ export function useUnicornScene({
           altText,
           ariaLabel,
           production,
-        };
-
-        if (!elementRef.current.id) {
-          elementRef.current.id = sceneConfig.elementId;
-        }
-
-        if (jsonFilePath) {
-          sceneConfig.filePath = jsonFilePath;
-        } else if (projectId) {
-          sceneConfig.projectId = projectId;
-        } else {
-          throw new Error("No project ID or JSON file path provided");
-        }
-
-        // Initialize with a timeout to prevent infinite retries
-        let timeoutId: ReturnType<typeof setTimeout> | undefined;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(
-            () => reject(new Error("Scene initialization timeout")),
-            15000,
-          );
         });
 
-        const clearTimer = () => {
-          if (timeoutId) clearTimeout(timeoutId);
-        };
+        const scene = await withTimeout(
+          window.UnicornStudio.addScene(sceneConfig),
+        );
 
-        try {
-          const scene = await Promise.race([
-            window.UnicornStudio.addScene(sceneConfig),
-            timeoutPromise,
-          ]);
+        // If the effect cleaned up while we were awaiting, destroy and bail
+        if (ignore) {
+          scene?.destroy();
+          return;
+        }
 
-          clearTimer();
-
-          // If the effect cleaned up while we were awaiting, destroy and bail
-          if (ignore) {
-            scene?.destroy();
-            return;
-          }
-
-          if (scene) {
-            internalSceneRef.current = scene;
-            assignSceneRef(sceneRefRef.current, scene);
-            hasAttemptedRef.current = false;
-            setInitError(null);
-            isInitializingRef.current = false;
-            onLoadRef.current?.();
-          } else {
-            isInitializingRef.current = false;
-            throw new Error("Failed to initialize scene");
-          }
-        } catch (error) {
-          clearTimer();
-          throw error;
+        if (scene) {
+          internalSceneRef.current = scene;
+          assignSceneRef(sceneRefRef.current, scene);
+          hasAttemptedRef.current = false;
+          setInitError(null);
+          isInitializingRef.current = false;
+          onLoadRef.current?.();
+        } else {
+          isInitializingRef.current = false;
+          throw new Error("Failed to initialize scene");
         }
       } catch (error) {
         if (ignore) return;
 
         const err = error instanceof Error ? error : new Error("Unknown error");
-
-        // Sanitize error messages to not expose URLs
-        let sanitizedMessage = err.message;
-        if (
-          sanitizedMessage.includes("404") ||
-          sanitizedMessage.includes("Failed to fetch")
-        ) {
-          sanitizedMessage = "Resource not found";
-        } else if (
-          sanitizedMessage.includes("Network") ||
-          sanitizedMessage.includes("network")
-        ) {
-          sanitizedMessage = "Network error occurred";
-        } else if (sanitizedMessage.includes("timeout")) {
-          sanitizedMessage = "Loading timeout";
-        }
-
-        const sanitizedError = new Error(sanitizedMessage);
+        const sanitizedError = new Error(sanitizeErrorMessage(err.message));
         setInitError(sanitizedError);
         isInitializingRef.current = false;
         onErrorRef.current?.(sanitizedError);
