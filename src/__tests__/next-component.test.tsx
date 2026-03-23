@@ -57,9 +57,17 @@ describe("UnicornScene (Next.js)", () => {
   });
 
   it("passes sdkUrl to the Script component", () => {
-    render(<UnicornScene projectId="test-id" sdkUrl="https://custom-cdn.example.com/sdk.js" />);
+    render(
+      <UnicornScene
+        projectId="test-id"
+        sdkUrl="https://custom-cdn.example.com/sdk.js"
+      />,
+    );
     const script = screen.getByTestId("next-script");
-    expect(script).toHaveAttribute("src", "https://custom-cdn.example.com/sdk.js");
+    expect(script).toHaveAttribute(
+      "src",
+      "https://custom-cdn.example.com/sdk.js",
+    );
   });
 
   it("uses lazyOnload strategy when lazyLoad is true", () => {

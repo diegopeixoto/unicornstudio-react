@@ -414,5 +414,21 @@ export function useUnicornScene({
     }
   }, [paused]);
 
+  // Observe container resize and call scene.resize() so the canvas adapts
+  useEffect(() => {
+    const el = elementRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(() => {
+      internalSceneRef.current?.resize?.();
+    });
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [elementRef]);
+
   return { error: initError };
 }
