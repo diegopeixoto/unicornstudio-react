@@ -24,8 +24,8 @@ function sanitizeErrorMessage(message: string): string {
   const urlPattern = /\bhttps?:\/\/[^\s)]+/gi;
   const filePathPattern = /\b(?:[A-Za-z]:\\|\/)[^\s)]+/g;
 
-  let sanitized = message.replace(urlPattern, "[redacted]");
-  sanitized = sanitized.replace(filePathPattern, "[redacted]");
+  let sanitized = message.replaceAll(urlPattern, "[redacted]");
+  sanitized = sanitized.replaceAll(filePathPattern, "[redacted]");
 
   return sanitized;
 }
