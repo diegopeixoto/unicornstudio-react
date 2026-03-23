@@ -20,7 +20,14 @@ function sanitizeErrorMessage(message: string): string {
   if (message.includes("timeout")) {
     return "Loading timeout";
   }
-  return message;
+  // For all other errors, redact obvious URLs and file paths to avoid leaking internals.
+  const urlPattern = /\bhttps?:\/\/[^\s)]+/gi;
+  const filePathPattern = /\b(?:[A-Za-z]:\\|\/)[^\s)]+/g;
+
+  let sanitized = message.replace(urlPattern, "[redacted]");
+  sanitized = sanitized.replace(filePathPattern, "[redacted]");
+
+  return sanitized;
 }
 
 /**
