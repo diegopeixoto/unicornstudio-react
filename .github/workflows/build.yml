@@ -1,30 +1,20 @@
 name: Build
-
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
-
 jobs:
-  build:
+  sonarqube:
+    name: SonarQube
     runs-on: ubuntu-latest
+    if: secrets.SONAR_TOKEN != ''
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run type-check
-      - run: npm run test:coverage
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

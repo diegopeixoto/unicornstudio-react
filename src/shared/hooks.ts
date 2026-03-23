@@ -257,7 +257,6 @@ export function useUnicornScene({
 }: UseUnicornSceneParams): { error: Error | null } {
   const internalSceneRef = useRef<UnicornStudioScene | null>(null);
   const [initError, setInitError] = useState<Error | null>(null);
-  const hasAttemptedRef = useRef(false);
   const initializationKeyRef = useRef<string>("");
   const isInitializingRef = useRef(false);
 
@@ -324,7 +323,6 @@ export function useUnicornScene({
 
       // Update the initialization key
       initializationKeyRef.current = currentKey;
-      hasAttemptedRef.current = true;
 
       try {
         destroyScene();
@@ -361,7 +359,6 @@ export function useUnicornScene({
         if (scene) {
           internalSceneRef.current = scene;
           assignSceneRef(sceneRefRef.current, scene);
-          hasAttemptedRef.current = false;
           setInitError(null);
           isInitializingRef.current = false;
           onLoadRef.current?.();

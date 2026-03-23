@@ -10,7 +10,6 @@ vi.mock("next/script", () => ({
 
 vi.mock("next/image", () => ({
   default: (props: Record<string, unknown>) => (
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     <img data-testid="next-image" {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
   ),
 }));
