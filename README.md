@@ -55,7 +55,7 @@ export default function MyComponent() {
 
 ### For Next.js
 
-Use the Next.js-optimized version with enhanced performance:
+Use the Next.js-optimized version:
 
 ```tsx
 import UnicornScene from "unicornstudio-react/next";
@@ -67,7 +67,7 @@ export default function MyComponent() {
 }
 ```
 
-> **Note**: The Next.js version uses Next.js `Script` and `Image` components for better performance and optimization. The React version uses standard `<script>` and `<img>` elements for broader compatibility.
+> **Note**: Both the React and Next.js builds load the bundled Unicorn Studio SDK by default. Pass `sdkUrl` if you need to override that with a custom hosted SDK URL.
 
 ### With Custom JSON File
 
@@ -87,6 +87,27 @@ export default function MyComponent() {
     />
   );
 }
+```
+
+### SDK Loading
+
+By default, this package loads the bundled Unicorn Studio SDK files that ship with the package.
+
+Use `sdkUrl` only when you need to override that behavior and load the SDK from a custom hosted URL:
+
+```tsx
+<UnicornScene
+  projectId="YOUR_PROJECT_EMBED_ID"
+  sdkUrl="https://your-custom-cdn.com/unicornStudio.umd.js"
+  width={800}
+  height={600}
+/>
+```
+
+If you are maintaining this package itself and need to refresh the bundled SDK files, place the upstream files in `vendor/unicornstudio/` and run:
+
+```bash
+npm run sync-sdk
 ```
 
 **Next.js:**
@@ -240,6 +261,7 @@ The component now supports flexible placeholder options that can be displayed wh
 | ----------------------------- | --------------------------------- | --------- | -------------------------------------------------------------------------- |
 | `projectId`                   | `string`                          | -         | The Unicorn Studio project embed ID (required if not using `jsonFilePath`) |
 | `jsonFilePath`                | `string`                          | -         | Path to a self-hosted JSON file (required if not using `projectId`)        |
+| `sdkUrl`                      | `string`                          | -         | Optional custom SDK URL; otherwise the bundled SDK is used                 |
 | `width`                       | `number \| string`                | `"100%"`  | Width of the scene container                                               |
 | `height`                      | `number \| string`                | `"100%"`  | Height of the scene container                                              |
 | `scale`                       | `number`                          | `1`       | Rendering scale (0.25-1, lower values improve performance)                 |
@@ -249,7 +271,7 @@ The component now supports flexible placeholder options that can be displayed wh
 | `ariaLabel`                   | `string`                          | -         | ARIA label for the scene                                                   |
 | `className`                   | `string`                          | `""`      | Additional CSS classes                                                     |
 | `lazyLoad`                    | `boolean`                         | `true`    | Load scene only when scrolled into view                                    |
-| `production`                  | `boolean`                         | `true`    | Use production CDN                                                         |
+| `production`                  | `boolean`                         | `true`    | Use production mode when initializing the scene                            |
 | `paused`                      | `boolean`                         | `false`   | Pause or resume the scene animation                                        |
 | `placeholder`                 | `string \| ReactNode`             | -         | Placeholder content (image URL or React component)                         |
 | `placeholderClassName`        | `string`                          | -         | CSS classes for placeholder div (when using CSS placeholder)               |
@@ -298,28 +320,16 @@ The component uses inline styles for maximum compatibility. You can customize th
 
 ## Dependencies & Requirements
 
-### Unicorn.Studio Script Dependency
+### Unicorn.Studio SDK Dependency
 
-This component **depends on Unicorn.Studio's proprietary script** (`unicornStudio.umd.js`) which:
+This component depends on Unicorn.Studio's proprietary SDK files, which:
 
-- ✅ Is automatically loaded from Unicorn.Studio's official CDN
-- ❌ Is **NOT bundled** or stored in this package
-- 🏢 Is **owned and hosted** by Unicorn.Studio (UNCRN LLC)
-- ⚖️ Is subject to [Unicorn.Studio's Terms of Service](https://unicorn.studio/terms)
+- ✅ Are bundled with this package and loaded locally by default
+- ✅ Can still be overridden with the `sdkUrl` prop
+- 🏢 Are **owned by** Unicorn.Studio (UNCRN LLC)
+- ⚖️ Are subject to [Unicorn.Studio's Terms of Service](https://unicorn.studio/terms)
 
 ### Custom Script URL (Advanced)
-
-```tsx
-// ⚠️ Use custom script URL (may violate Unicorn.Studio TOS)
-// Only use if you have explicit permission from Unicorn.Studio
-const constants = {
-  UNICORN_STUDIO_CDN_URL: "https://your-custom-cdn.com/unicornStudio.umd.js",
-};
-```
-
-**Warning**: Using a custom script URL may violate Unicorn.Studio's Terms of Service. Consult their legal terms before implementing.
-
-**React/Next.js Example usage:**
 
 ```tsx
 <UnicornScene
@@ -380,7 +390,7 @@ This component is based on the [official Unicorn.Studio React example](https://g
 1. **Modern React Patterns**
    - Custom hooks for script loading and scene management
    - Proper TypeScript integration with full type definitions
-   - Next.js `Script` component for optimized loading
+   - Shared SDK loader across React and Next.js
 
 2. **Better Architecture**
    - Separation of concerns (hooks, types, constants)
@@ -407,7 +417,7 @@ This React component wrapper is released under the **MIT License** - see the [LI
 
 ### Unicorn.Studio Dependencies
 
-- **Unicorn.Studio Script**: Proprietary software owned by UNCRN LLC
+- **Unicorn.Studio SDK files**: Proprietary software owned by UNCRN LLC
 - **Terms**: Subject to [Unicorn.Studio's Terms of Service](https://unicorn.studio/terms)
 - **Licensing**: Commercial use governed by Unicorn.Studio's licensing terms
 
@@ -415,7 +425,7 @@ This React component wrapper is released under the **MIT License** - see the [LI
 
 This package is a **community-created wrapper** and is **not officially affiliated** with Unicorn.Studio or UNCRN LLC. The authors of this package:
 
-- Do not store, distribute, or modify Unicorn.Studio's proprietary scripts
+- Distribute Unicorn.Studio SDK files only as part of this wrapper package
 - Are not responsible for Unicorn.Studio's service availability or performance
 - Recommend users comply with Unicorn.Studio's Terms of Service
 - Provide this wrapper "as-is" without warranty

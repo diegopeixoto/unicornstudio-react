@@ -3,13 +3,14 @@ import type { ValidFPS, ScaleRange } from "./types";
 /**
  * Current version of the Unicorn Studio SDK being used.
  */
-export const UNICORN_STUDIO_VERSION = "2.1.4";
+export const UNICORN_STUDIO_VERSION = "2.1.9";
 
 /**
- * CDN URL for the Unicorn Studio SDK script.
+ * Official CDN URL for the Unicorn Studio SDK script.
  *
  * @remarks
- * This URL points to the official Unicorn Studio UMD bundle hosted on jsDelivr.
+ * This remains available as an override for `sdkUrl`, but the package now
+ * loads its bundled SDK files by default.
  */
 export const UNICORN_STUDIO_CDN_URL = `https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v${UNICORN_STUDIO_VERSION}/dist/unicornStudio.umd.js`;
 

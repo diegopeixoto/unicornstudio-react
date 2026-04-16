@@ -37,7 +37,9 @@ export interface UnicornSceneProps {
   /**
    * Custom URL for the Unicorn Studio SDK script.
    *
-   * @defaultValue The official Unicorn Studio CDN URL
+   * @remarks
+   * When omitted, the package loads the bundled SDK files included with the
+   * library.
    */
   sdkUrl?: string;
 

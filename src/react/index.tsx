@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import type { UnicornSceneProps } from "../shared/types";
 import { useUnicornStudioScript, useUnicornScene } from "./hooks";
-import { UNICORN_STUDIO_CDN_URL, DEFAULT_VALUES } from "../shared/constants";
+import { DEFAULT_VALUES } from "../shared/constants";
 import { unicornStyles } from "../shared/styles";
 import { isWebGLSupported } from "../shared/utils";
 
@@ -10,7 +10,9 @@ import { isWebGLSupported } from "../shared/utils";
  *
  * @remarks
  * This component wraps Unicorn Studio's WebGL animation system for use in React applications.
- * It handles script loading, scene initialization, placeholder display, and error states.
+ * It handles SDK loading, scene initialization, placeholder display, and error
+ * states. The bundled Unicorn Studio SDK is used by default, while `sdkUrl`
+ * can override it with a custom script URL.
  *
  * The component requires either a `projectId` (to load from Unicorn Studio's servers)
  * or a `jsonFilePath` (to load from a local JSON file).
@@ -51,7 +53,7 @@ import { isWebGLSupported } from "../shared/utils";
 function UnicornScene({
   projectId,
   jsonFilePath,
-  sdkUrl = UNICORN_STUDIO_CDN_URL,
+  sdkUrl,
   width = DEFAULT_VALUES.width,
   height = DEFAULT_VALUES.height,
   scale = DEFAULT_VALUES.scale,

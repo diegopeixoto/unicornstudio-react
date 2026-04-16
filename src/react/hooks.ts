@@ -1,21 +1,20 @@
 import { useEffect, useState, useCallback } from "react";
+import { loadUnicornStudioSdk } from "../shared/sdk-loader";
 
 /**
- * Hook for loading the Unicorn Studio SDK script in React applications.
+ * Hook for loading the Unicorn Studio SDK in React applications.
  *
  * @remarks
- * This hook manages the lifecycle of the Unicorn Studio SDK script element.
- * It handles script loading, error states, and prevents duplicate script tags.
- * The script is loaded asynchronously and persists in the DOM to avoid re-loading on remount.
+ * This hook loads the bundled Unicorn Studio SDK by default. When `scriptUrl`
+ * is provided, it loads that URL instead. Duplicate loads are deduplicated so
+ * remounts or multiple scene instances reuse the same SDK instance.
  *
- * @param scriptUrl - The URL of the Unicorn Studio SDK script to load
+ * @param scriptUrl - Optional custom URL for the Unicorn Studio SDK script
  * @returns An object containing loading state, error state, and event handlers
  *
  * @example
  * ```tsx
- * const { isLoaded, error } = useUnicornStudioScript(
- *   "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.0.1/dist/unicornStudio.umd.js"
- * );
+ * const { isLoaded, error } = useUnicornStudioScript();
  *
  * if (error) {
  *   return <div>Failed to load SDK</div>;
@@ -26,7 +25,7 @@ import { useEffect, useState, useCallback } from "react";
  * }
  * ```
  */
-export function useUnicornStudioScript(scriptUrl: string): {
+export function useUnicornStudioScript(scriptUrl?: string): {
   /** Whether the script has finished loading successfully */
   isLoaded: boolean;
   /** Error that occurred during script loading, if any */
@@ -36,11 +35,16 @@ export function useUnicornStudioScript(scriptUrl: string): {
   /** Callback to handle script loading error */
   handleScriptError: () => void;
 } {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(
+    typeof window !== "undefined" && Boolean(window.UnicornStudio?.addScene),
+  );
   const [error, setError] = useState<Error | null>(null);
 
   const handleScriptLoad = useCallback(() => {
-    setIsLoaded(true);
+    if (typeof window !== "undefined" && window.UnicornStudio?.addScene) {
+      setIsLoaded(true);
+      setError(null);
+    }
   }, []);
 
   const handleScriptError = useCallback(() => {
@@ -48,47 +52,34 @@ export function useUnicornStudioScript(scriptUrl: string): {
   }, []);
 
   useEffect(() => {
-    // Check if script is already loaded
-    const existingScript = document.querySelector(
-      `script[src="${scriptUrl}"]`,
-    ) as HTMLScriptElement;
+    let ignore = false;
 
-    if (existingScript) {
-      if (existingScript.dataset.loaded === "true") {
-        setIsLoaded(true);
-        return;
-      }
-
-      // If script exists but not loaded, attach listeners
-      existingScript.addEventListener("load", handleScriptLoad);
-      existingScript.addEventListener("error", handleScriptError);
-
-      return () => {
-        existingScript.removeEventListener("load", handleScriptLoad);
-        existingScript.removeEventListener("error", handleScriptError);
-      };
+    if (typeof window !== "undefined" && window.UnicornStudio?.addScene) {
+      setIsLoaded(true);
+      setError(null);
+      return;
     }
 
-    // Create and load the script
-    const script = document.createElement("script");
-    script.src = scriptUrl;
-    script.async = true;
-    script.addEventListener("load", () => {
-      script.dataset.loaded = "true";
-      handleScriptLoad();
-    });
-    script.addEventListener("error", handleScriptError);
-
-    document.head.appendChild(script);
+    void loadUnicornStudioSdk(scriptUrl)
+      .then(() => {
+        if (ignore) return;
+        setIsLoaded(true);
+        setError(null);
+      })
+      .catch((loadError) => {
+        if (ignore) return;
+        setIsLoaded(false);
+        setError(
+          loadError instanceof Error
+            ? loadError
+            : new Error("Failed to load UnicornStudio script"),
+        );
+      });
 
     return () => {
-      if (script.parentNode) {
-        script.removeEventListener("load", handleScriptLoad);
-        script.removeEventListener("error", handleScriptError);
-        // Don't remove script from DOM to avoid re-loading on remount
-      }
+      ignore = true;
     };
-  }, [scriptUrl, handleScriptLoad, handleScriptError]);
+  }, [scriptUrl]);
 
   return { isLoaded, error, handleScriptLoad, handleScriptError };
 }

@@ -37,6 +37,23 @@ describe("UnicornScene (React)", () => {
     expect(container.firstElementChild?.tagName).toBe("DIV");
   });
 
+  it("uses the bundled SDK loader when sdkUrl is omitted", () => {
+    render(<UnicornScene projectId="test-id" />);
+    expect(mockUseUnicornStudioScript).toHaveBeenCalledWith(undefined);
+  });
+
+  it("passes sdkUrl to the SDK hook", () => {
+    render(
+      <UnicornScene
+        projectId="test-id"
+        sdkUrl="https://custom-cdn.example.com/sdk.js"
+      />,
+    );
+    expect(mockUseUnicornStudioScript).toHaveBeenCalledWith(
+      "https://custom-cdn.example.com/sdk.js",
+    );
+  });
+
   it("applies custom className", () => {
     const { container } = render(
       <UnicornScene projectId="test-id" className="my-class" />,
