@@ -1,13 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-// Mock Next.js modules
-vi.mock("next/script", () => ({
-  default: (props: Record<string, unknown>) => (
-    <script data-testid="next-script" {...props} />
-  ),
-}));
-
 vi.mock("next/image", () => ({
   default: ({ priority, fill, ...props }: Record<string, unknown>) => (
     <img
@@ -50,36 +43,26 @@ beforeEach(() => {
 });
 
 describe("UnicornScene (Next.js)", () => {
-  it("renders a container div and a Next.js Script", () => {
+  it("renders a container div", () => {
     const { container } = render(<UnicornScene projectId="test-id" />);
     expect(container.querySelector("div")).toBeTruthy();
-    expect(screen.getByTestId("next-script")).toBeTruthy();
   });
 
-  it("passes sdkUrl to the Script component", () => {
+  it("passes sdkUrl to the SDK hook", () => {
     render(
       <UnicornScene
         projectId="test-id"
         sdkUrl="https://custom-cdn.example.com/sdk.js"
       />,
     );
-    const script = screen.getByTestId("next-script");
-    expect(script).toHaveAttribute(
-      "src",
+    expect(mockUseUnicornStudioScript).toHaveBeenCalledWith(
       "https://custom-cdn.example.com/sdk.js",
     );
   });
 
-  it("uses lazyOnload strategy when lazyLoad is true", () => {
-    render(<UnicornScene projectId="test-id" lazyLoad={true} />);
-    const script = screen.getByTestId("next-script");
-    expect(script).toHaveAttribute("strategy", "lazyOnload");
-  });
-
-  it("uses afterInteractive strategy when lazyLoad is false", () => {
-    render(<UnicornScene projectId="test-id" lazyLoad={false} />);
-    const script = screen.getByTestId("next-script");
-    expect(script).toHaveAttribute("strategy", "afterInteractive");
+  it("uses the bundled SDK loader when sdkUrl is omitted", () => {
+    render(<UnicornScene projectId="test-id" />);
+    expect(mockUseUnicornStudioScript).toHaveBeenCalledWith(undefined);
   });
 
   it("applies custom className", () => {

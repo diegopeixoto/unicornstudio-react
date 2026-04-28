@@ -1,10 +1,9 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
-import Script from "next/script";
 import Image from "next/image";
 import type { UnicornSceneProps } from "../shared/types";
 import { useUnicornStudioScript, useUnicornScene } from "./hooks";
-import { UNICORN_STUDIO_CDN_URL, DEFAULT_VALUES } from "../shared/constants";
+import { DEFAULT_VALUES } from "../shared/constants";
 import { unicornStyles } from "../shared/styles";
 import { isWebGLSupported } from "../shared/utils";
 
@@ -13,7 +12,8 @@ import { isWebGLSupported } from "../shared/utils";
  *
  * @remarks
  * This component wraps Unicorn Studio's WebGL animation system for use in Next.js applications.
- * It uses Next.js's optimized `Script` and `Image` components for better performance.
+ * It uses the bundled Unicorn Studio SDK by default and Next.js's optimized
+ * `Image` component for placeholder rendering.
  *
  * The component is marked with `"use client"` as it requires browser APIs.
  *
@@ -63,7 +63,7 @@ import { isWebGLSupported } from "../shared/utils";
 function UnicornScene({
   projectId,
   jsonFilePath,
-  sdkUrl = UNICORN_STUDIO_CDN_URL,
+  sdkUrl,
   width = DEFAULT_VALUES.width,
   height = DEFAULT_VALUES.height,
   scale = DEFAULT_VALUES.scale,
@@ -87,12 +87,7 @@ function UnicornScene({
   const [isSceneLoaded, setIsSceneLoaded] = useState(false);
   const [webGLSupported, setWebGLSupported] = useState(true);
 
-  const {
-    isLoaded,
-    error: scriptError,
-    handleScriptLoad,
-    handleScriptError,
-  } = useUnicornStudioScript();
+  const { isLoaded, error: scriptError } = useUnicornStudioScript(sdkUrl);
   const { error: sceneError } = useUnicornScene({
     elementRef,
     projectId,
@@ -142,13 +137,6 @@ function UnicornScene({
 
   return (
     <>
-      <Script
-        src={sdkUrl}
-        strategy={lazyLoad ? "lazyOnload" : "afterInteractive"}
-        onLoad={handleScriptLoad}
-        onError={handleScriptError}
-      />
-
       <div
         ref={elementRef}
         style={{ ...unicornStyles.container, ...customProperties }}

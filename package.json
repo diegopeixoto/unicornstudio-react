@@ -1,6 +1,6 @@
 {
   "name": "unicornstudio-react",
-  "version": "2.1.4-1",
+  "version": "2.1.9",
   "description": "React component for embedding Unicorn.Studio interactive scenes with TypeScript support. Compatible with React (Vite) and Next.js.",
   "keywords": [
     "react",
@@ -46,11 +46,13 @@
   },
   "files": [
     "dist",
+    "vendor/unicornstudio/README.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup",
+    "sync-sdk": "node scripts/generate-sdk-bundle.mjs",
+    "build": "npm run sync-sdk && tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

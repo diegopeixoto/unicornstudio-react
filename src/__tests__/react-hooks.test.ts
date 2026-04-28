@@ -2,19 +2,23 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useUnicornStudioScript } from "../react/hooks";
 
+const mockLoadUnicornStudioSdk = vi.fn();
+
+vi.mock("../shared/sdk-loader", () => ({
+  loadUnicornStudioSdk: (...args: unknown[]) =>
+    mockLoadUnicornStudioSdk(...args),
+}));
+
 describe("useUnicornStudioScript (React)", () => {
   beforeEach(() => {
-    // Clear any existing test scripts
-    document
-      .querySelectorAll('script[src*="example.com"]')
-      .forEach((el) => el.remove());
+    delete (window as Record<string, unknown>).UnicornStudio;
+    mockLoadUnicornStudioSdk.mockReset();
+    mockLoadUnicornStudioSdk.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    document
-      .querySelectorAll('script[src*="example.com"]')
-      .forEach((el) => el.remove());
+    delete (window as Record<string, unknown>).UnicornStudio;
   });
 
   it("starts with isLoaded false and no error", () => {
@@ -25,62 +29,48 @@ describe("useUnicornStudioScript (React)", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("creates a script element in the document head", () => {
-    renderHook(() => useUnicornStudioScript("https://cdn.example.com/sdk.js"));
-    const script = document.querySelector(
-      'script[src="https://cdn.example.com/sdk.js"]',
-    );
-    expect(script).toBeTruthy();
-    expect(script?.getAttribute("src")).toBe("https://cdn.example.com/sdk.js");
+  it("loads the bundled SDK when no custom URL is provided", () => {
+    renderHook(() => useUnicornStudioScript());
+    expect(mockLoadUnicornStudioSdk).toHaveBeenCalledWith(undefined);
   });
 
-  it("sets isLoaded to true on script load event", async () => {
-    const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
+  it("passes custom sdkUrl to the loader", () => {
+    renderHook(() => useUnicornStudioScript("https://cdn.example.com/sdk.js"));
+    expect(mockLoadUnicornStudioSdk).toHaveBeenCalledWith(
+      "https://cdn.example.com/sdk.js",
     );
+  });
 
-    const script = document.querySelector(
-      'script[src="https://cdn.example.com/sdk.js"]',
-    ) as HTMLScriptElement;
+  it("sets isLoaded to true when the loader resolves", async () => {
+    const { result } = renderHook(() => useUnicornStudioScript());
 
     await act(async () => {
-      script.dispatchEvent(new Event("load"));
+      await Promise.resolve();
     });
 
     expect(result.current.isLoaded).toBe(true);
     expect(result.current.error).toBeNull();
   });
 
-  it("sets error on script load failure", async () => {
-    const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
-    );
-
-    const script = document.querySelector(
-      'script[src="https://cdn.example.com/sdk.js"]',
-    ) as HTMLScriptElement;
+  it("sets error when the loader rejects", async () => {
+    mockLoadUnicornStudioSdk.mockRejectedValueOnce(new Error("Load failed"));
+    const { result } = renderHook(() => useUnicornStudioScript());
 
     await act(async () => {
-      script.dispatchEvent(new Event("error"));
+      await Promise.resolve();
     });
 
     expect(result.current.isLoaded).toBe(false);
     expect(result.current.error).toBeInstanceOf(Error);
-    expect(result.current.error?.message).toContain("Failed to load");
+    expect(result.current.error?.message).toContain("Load failed");
   });
 
-  it("detects already-loaded script with data-loaded attribute", () => {
-    // Pre-add a loaded script
-    const existing = document.createElement("script");
-    existing.src = "https://cdn.example.com/sdk.js";
-    existing.dataset.loaded = "true";
-    document.head.appendChild(existing);
-
-    const { result } = renderHook(() =>
-      useUnicornStudioScript("https://cdn.example.com/sdk.js"),
-    );
+  it("detects UnicornStudio already available on mount", () => {
+    (window as Record<string, unknown>).UnicornStudio = { addScene: vi.fn() };
+    const { result } = renderHook(() => useUnicornStudioScript());
 
     expect(result.current.isLoaded).toBe(true);
+    expect(mockLoadUnicornStudioSdk).not.toHaveBeenCalled();
   });
 
   it("provides handleScriptLoad and handleScriptError callbacks", () => {
