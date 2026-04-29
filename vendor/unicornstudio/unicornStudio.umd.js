@@ -2271,7 +2271,7 @@
     _ = ["relative", "fixed"],
     T = { enterTime: null, movePos: { x: 0.5, y: 0.5 } },
     P = ["lightColor", "ambientLightColor", "fillLightColor"];
-  let E = "2.1.6";
+  let E = "2.1.11";
   function w(e) {
     return window.atob(e);
   }
@@ -2432,7 +2432,7 @@
     return e.getAttribute(t);
   }
   function C(e) {
-    var t, i, s;
+    var t, i, s, a;
     if (void 0 !== e.local.isDynamicCache) return e.local.isDynamicCache;
     if (e.isFlattened) {
       const a =
@@ -2464,14 +2464,14 @@
         u = a || r || n || l || o;
       return ((e.local.isDynamicCache = u), u);
     }
-    const a = [
+    const r = [
         "trackMouse",
         "axisTilt",
         "trackMouseMove",
         "rotationTracking",
         "lightTracking",
       ].some((t) => e.hasOwnProperty(t) && 0 !== e[t]),
-      r =
+      n =
         e.states &&
         [
           ...e.states.appear,
@@ -2479,12 +2479,19 @@
           ...e.states.hover,
           ...e.states.mousemove,
         ].length > 0,
-      n =
+      l =
         ("effect" === e.layerType || e.isModel) &&
         (e.animating || e.usesPingPong),
-      l = "video" === e.type,
-      o = a || r || n || l;
-    return ((e.local.isDynamicCache = o), o);
+      o = "video" === e.type,
+      u =
+        Array.isArray(null == (a = e.data) ? void 0 : a.textures) &&
+        e.data.textures.some(
+          (e) =>
+            "video" === (null == e ? void 0 : e.type) &&
+            (null == e ? void 0 : e.src),
+        ),
+      h = r || n || l || o || u;
+    return ((e.local.isDynamicCache = h), h);
   }
   function B(e, t) {
     var i, s, a, r;
@@ -2556,14 +2563,16 @@
     const t = (i) => {
       let s = !1;
       (e.forEach((e) => {
-        e.destroyed ||
-          (e.isInView && e.initialized
-            ? ((e.rendering = !0),
-              i - (e.lastTime || 0) >= e.frameDuration &&
-                !e.paused &&
-                (e.renderFrame(), (e.lastTime = i)),
-              (s = !0))
-            : (e.rendering = !1));
+        if (!e.destroyed)
+          if (e.isInView && e.initialized) {
+            e.rendering = !0;
+            const t = i - (e.lastTime || 0);
+            ((e.lastTime && !(t >= e.frameDuration)) ||
+              e.paused ||
+              (e.renderFrame(),
+              (e.lastTime = e.lastTime ? i - (t % e.frameDuration) : i)),
+              (s = !0));
+          } else e.rendering = !1;
       }),
         (!g || i - g > 64) &&
           ((f = window.scrollY || window.pageYOffset),
@@ -3521,6 +3530,8 @@
         (this.local.videoSublayers = []),
         (this.local.modelSublayers = []),
         (this.local.textInstances = {}),
+        (this.local.canvasTextures = {}),
+        (this.local.sourceTextures = {}),
         (this.local.modelInstances = {}),
         (this.local.modelTextures = {}),
         this.sublayers.forEach((e, i) => {
@@ -4240,9 +4251,11 @@
         { left: a, top: r, width: n } = this.box();
       const l = X(this.anchorPoint),
         o =
-          (null == (i = null == (t = this.local) ? void 0 : t.stateEffectProps)
+          ((null == (i = null == (t = this.local) ? void 0 : t.stateEffectProps)
             ? void 0
-            : i.rotation) || this.rotation;
+            : i.rotation) ??
+            this.rotation) ||
+          0;
       let u = this.state(),
         h = this.height,
         c = a - l.x * n,
@@ -4529,7 +4542,7 @@
         (this.element = e.element),
         (this.fps = e.fps || 60),
         (this.name = e.name),
-        (this.frameDuration = Math.floor(1e3 / (e.fps || 60))),
+        (this.frameDuration = 1e3 / (e.fps || 60)),
         (this.layers = e.layers),
         (this.lazyLoad = e.lazyLoad),
         (this.initialized = !1),
@@ -5451,9 +5464,31 @@
           .filter((e) => (null == e ? void 0 : e.src))
           .forEach((s) => {
             var a;
-            (null == (a = t.compiledFragmentShaders[i.passIndex ?? 0])
-              ? void 0
-              : a.includes(s.sampler)) &&
+            if (
+              null == (a = t.compiledFragmentShaders[i.passIndex ?? 0])
+                ? void 0
+                : a.includes(s.sampler)
+            ) {
+              if ("video" === s.type) {
+                const i =
+                  "uVideoTexture" === s.sampler && t.src ? t.src : s.src;
+                if (!i || e.textures.some((e) => e._samplerName === s.sampler))
+                  return;
+                const a = this.preloadVideo(i);
+                if (!a) return;
+                return void e.loadVideo(
+                  a,
+                  { premultipliedAlpha: !0, sampler: s.sampler },
+                  () => {
+                    const i = e.videos.at(-1);
+                    i &&
+                      ((i.loop = s.loop ?? t.loop ?? !0),
+                      (i.playbackRate = s.playbackRate || t.playbackRate || 1),
+                      i.play(),
+                      (e.userData.textureLoaded = !0));
+                  },
+                );
+              }
               this.preloadImage(
                 s.src,
                 s.sampler,
@@ -5466,6 +5501,7 @@
                 },
                 !1,
               );
+            }
           }),
         "video" === t.type && t.src)
       ) {
@@ -5668,41 +5704,41 @@
         r && e.mask && W(a, "uPreviousLayerTexture", r.getTexture()));
     }
     handleChildEffectPlane(e, t, i, s) {
-      var a, r, n, l, o, u, h;
-      const c =
+      var a, r, n, l, o, u, h, c, d;
+      const f =
           "passIndex" in i ? this.getPassPlane(e, i.passIndex) : e.getPlane(),
-        d = e.getParent();
-      if (!c || !d) return;
-      let f = s[t - 1],
-        p =
+        p = e.getParent();
+      if (!f || !p) return;
+      let m = s[t - 1],
+        g =
           null == (a = this.curtain)
             ? void 0
             : a.planes.find(
                 (t) =>
                   "PingPongPlane" === t.type && t.userData.id === e.local.id,
               ),
-        m = e.compiledFragmentShaders[i.passIndex ?? 0],
-        g = d.effects.filter((e) => {
+        v = e.compiledFragmentShaders[i.passIndex ?? 0],
+        x = p.effects.filter((e) => {
           if (this.layers.find((t) => t.parentLayer === e))
             return this.layers.find((t) => t.parentLayer === e);
         }),
-        v = g.indexOf(e.parentLayer),
-        x = g.at(-1) === g[v],
-        y = i.passIndex === i.length;
-      const b = d.isGpuElement || d.isFlattened;
+        y = x.indexOf(e.parentLayer),
+        b = x.at(-1) === x[y],
+        _ = i.passIndex === i.length;
+      const T = p.isGpuElement || p.isFlattened;
       if (
-        (p &&
-          (null == m ? void 0 : m.includes("uPingPongTexture")) &&
-          W(c, "uPingPongTexture", p.getTexture()),
-        null == m ? void 0 : m.includes("uBgTexture"))
+        (g &&
+          (null == v ? void 0 : v.includes("uPingPongTexture")) &&
+          W(f, "uPingPongTexture", g.getTexture()),
+        null == v ? void 0 : v.includes("uBgTexture"))
       )
-        if (v && i.length > 1) {
+        if (y && i.length > 1) {
           let e = s[t - (1 + i.length)];
-          e && W(c, "uBgTexture", e.getTexture());
-        } else if (b) {
-          const e = d.getPlanes().find((e) => !e.userData.isComposite);
+          e && W(f, "uBgTexture", e.getTexture());
+        } else if (T) {
+          const e = p.getPlanes().find((e) => !e.userData.isComposite);
           W(
-            c,
+            f,
             "uBgTexture",
             null == (l = null == e ? void 0 : e.target)
               ? void 0
@@ -5711,80 +5747,87 @@
         } else
           (
             null ==
-            (n = null == (r = d.preloadedCanvasTexture) ? void 0 : r.userData)
+            (n = null == (r = p.preloadedCanvasTexture) ? void 0 : r.userData)
               ? void 0
               : n.used
           )
-            ? c.loadCanvas(
-                d.local.canvas,
+            ? f.loadCanvas(
+                p.local.canvas,
                 { sampler: "uBgTexture", premultiplyAlpha: !0 },
                 (e) => {
-                  e.shouldUpdate = d.preloadedCanvasTexture.shouldUpdate;
+                  e.shouldUpdate = p.preloadedCanvasTexture.shouldUpdate;
                 },
               )
-            : d.preloadedCanvasTexture &&
-              ((d.preloadedCanvasTexture._samplerName = "uBgTexture"),
-              c.addTexture(d.preloadedCanvasTexture));
-      if (f && (v || i.passIndex)) {
-        if (e.isMask && (!i.length || (x && y)))
-          if (!b && d.preloadedCanvasTexture)
-            c.addTexture(d.preloadedCanvasTexture);
+            : p.preloadedCanvasTexture &&
+              ((p.preloadedCanvasTexture._samplerName = "uBgTexture"),
+              f.addTexture(p.preloadedCanvasTexture));
+      if (m && (y || i.passIndex)) {
+        if (e.isMask && (!i.length || (b && _)))
+          if (!T && p.preloadedCanvasTexture)
+            f.addTexture(p.preloadedCanvasTexture);
           else {
-            const e = d.getPlanes().find((e) => !e.userData.isComposite);
+            const e = p.getPlanes().find((e) => !e.userData.isComposite);
             W(
-              c,
+              f,
               "uMaskTexture",
               null == (o = null == e ? void 0 : e.target)
                 ? void 0
                 : o.getTexture(),
             );
           }
-        W(c, "uTexture", f.getTexture());
+        W(f, "uTexture", m.getTexture());
       } else if (e.isMask) {
-        if (!i.length || (x && y))
-          if (!b && d.preloadedCanvasTexture)
-            c.addTexture(d.preloadedCanvasTexture);
+        if (!i.length || (b && _))
+          if (!T && p.preloadedCanvasTexture)
+            f.addTexture(p.preloadedCanvasTexture);
           else {
-            const e = d.getPlanes().find((e) => !e.userData.isComposite);
+            const e = p.getPlanes().find((e) => !e.userData.isComposite);
             W(
-              c,
+              f,
               "uMaskTexture",
               null == (u = null == e ? void 0 : e.target)
                 ? void 0
                 : u.getTexture(),
             );
           }
-        (x && y && !b
-          ? c.addTexture(d.preloadedCanvasTexture)
-          : f
-            ? W(c, "uTexture", f.getTexture())
-            : W(c, "uTexture"),
-          (f = s[t - 2]),
-          f && W(c, "uTexture", f.getTexture()));
-      } else if (null == m ? void 0 : m.includes("uTexture"))
-        if (b) {
-          const e = d.getPlanes().find((e) => !e.userData.isComposite);
+        (b && _ && !T
+          ? f.addTexture(p.preloadedCanvasTexture)
+          : m
+            ? W(f, "uTexture", m.getTexture())
+            : W(f, "uTexture"),
+          (m = s[t - 2]),
+          m && W(f, "uTexture", m.getTexture()));
+      } else if (null == v ? void 0 : v.includes("uTexture"))
+        if (T) {
+          const e = p.getPlanes().find((e) => !e.userData.isComposite);
           W(
-            c,
+            f,
             "uTexture",
             null == (h = null == e ? void 0 : e.target)
               ? void 0
               : h.getTexture(),
           );
         } else
-          d.preloadedCanvasTexture
-            ? (c.addTexture(d.preloadedCanvasTexture),
-              d.preloadedCanvasTexture &&
-                (d.preloadedCanvasTexture.userData.used = !0))
-            : W(c, "uTexture", f.getTexture());
+          p.preloadedCanvasTexture
+            ? (f.addTexture(p.preloadedCanvasTexture),
+              p.preloadedCanvasTexture &&
+                (p.preloadedCanvasTexture.userData.used = !0))
+            : W(f, "uTexture", m.getTexture());
       (i.needsPreviousFrame &&
         W(
-          c,
+          f,
           "uPreviousFrameTexture",
           this.createPreviousFrameTarget(e, i, t, s),
         ),
-        "custom" === e.type && W(c, "uCustomTexture", s[t]),
-        this.handleMediaTextures(c, e, i));
+        "custom" === e.type &&
+          W(
+            f,
+            "uCustomTexture",
+            null == (d = null == (c = s[t]) ? void 0 : c.getTexture)
+              ? void 0
+              : d.call(c),
+          ),
+        this.handleMediaTextures(f, e, i));
     }
     createPlanes() {
       (this.getOrderedItems().forEach((e) => {
@@ -5989,37 +6032,35 @@
           this.curtain.renderer.bindFrameBuffer(null)));
     }
     blitRenderTarget(e, t) {
-      var i, s;
-      const a =
-          (null == (i = e._size) ? void 0 : i.width) ||
+      var i, s, a;
+      const r = null == (i = this.curtain) ? void 0 : i.gl;
+      if (!r || "function" != typeof r.blitFramebuffer) return;
+      const n =
+          (null == (s = e._size) ? void 0 : s.width) ||
           this.curtain.canvas.width,
-        r =
-          (null == (s = e._size) ? void 0 : s.height) ||
+        l =
+          (null == (a = e._size) ? void 0 : a.height) ||
           this.curtain.canvas.height;
-      if (
-        (this.ensureRenderTargetInitialized(e, a, r),
-        this.ensureRenderTargetInitialized(t, a, r),
-        !(null == e ? void 0 : e._frameBuffer) ||
-          !(null == t ? void 0 : t._frameBuffer))
-      )
-        return;
-      const n = this.curtain.gl;
-      (n.bindFramebuffer(n.READ_FRAMEBUFFER, e._frameBuffer),
-        n.bindFramebuffer(n.DRAW_FRAMEBUFFER, t._frameBuffer),
-        n.blitFramebuffer(
-          0,
-          0,
-          a,
-          r,
-          0,
-          0,
-          a,
-          r,
-          n.COLOR_BUFFER_BIT,
-          n.NEAREST,
-        ),
-        n.bindFramebuffer(n.READ_FRAMEBUFFER, null),
-        n.bindFramebuffer(n.DRAW_FRAMEBUFFER, null));
+      (this.ensureRenderTargetInitialized(e, n, l),
+        this.ensureRenderTargetInitialized(t, n, l),
+        (null == e ? void 0 : e._frameBuffer) &&
+          (null == t ? void 0 : t._frameBuffer) &&
+          (r.bindFramebuffer(r.READ_FRAMEBUFFER, e._frameBuffer),
+          r.bindFramebuffer(r.DRAW_FRAMEBUFFER, t._frameBuffer),
+          r.blitFramebuffer(
+            0,
+            0,
+            n,
+            l,
+            0,
+            0,
+            n,
+            l,
+            r.COLOR_BUFFER_BIT,
+            r.NEAREST,
+          ),
+          r.bindFramebuffer(r.READ_FRAMEBUFFER, null),
+          r.bindFramebuffer(r.DRAW_FRAMEBUFFER, null)));
     }
     assignRenderTargetToPlane(e, t, i, s, a) {
       let n = this.getTextureParams(e, i, s),

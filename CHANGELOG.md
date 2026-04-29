@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.1.9] - 2026-04-16
+## [2.1.11] - 2026-04-29
 
 ### Changed
 
@@ -9,7 +9,7 @@
 - The package now loads bundled Unicorn Studio SDK files by default instead of using the jsDelivr URL as the default runtime source
 - The `sdkUrl` prop is still supported as an override for custom hosted SDK builds
 - React and Next.js now share the same internal SDK loading flow
-- Updated the Unicorn Studio SDK version to `2.1.9`
+- Updated the Unicorn Studio SDK version to `2.1.11`
 
 ### Documentation
 
