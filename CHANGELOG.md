@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.1.12] - 2026-05-05
+
+### Changed
+
+- Updated the Unicorn Studio SDK version to `2.1.12`
+
 ## [2.1.9] - 2026-04-16
 
 ### Changed
