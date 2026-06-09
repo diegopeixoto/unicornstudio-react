@@ -15,6 +15,14 @@ export const UNICORN_STUDIO_VERSION = "2.1.12";
 export const UNICORN_STUDIO_CDN_URL = `https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v${UNICORN_STUDIO_VERSION}/dist/unicornStudio.umd.js`;
 
 /**
+ * CDN URL for the Unicorn Studio model-renderer extension module.
+ *
+ * @remarks
+ * Used by the bundled SDK loader to redirect dynamic imports to local blob URLs.
+ */
+export const UNICORN_STUDIO_MODEL_RENDERER_URL = `https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v${UNICORN_STUDIO_VERSION}/extensions/model-renderer.js`;
+
+/**
  * Default values for UnicornScene component props.
  *
  * @remarks
