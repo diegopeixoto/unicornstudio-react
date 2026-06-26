@@ -1,4 +1,9 @@
 import { BUNDLED_UNICORN_SDK } from "./sdk-bundle";
+import { UNICORN_STUDIO_MODEL_RENDERER_URL } from "./constants";
+
+export interface BundledUnicornStudioImportMap {
+  imports: Record<string, string>;
+}
 
 const SCRIPT_ERROR_MESSAGE = "Failed to load UnicornStudio script";
 const MISSING_BUNDLED_SDK_MESSAGE =
@@ -99,21 +104,65 @@ function loadExternalScript(scriptUrl: string): Promise<void> {
   return promise;
 }
 
-function injectBundledScript(id: string, content: string) {
-  const existingScript = getBundledScript(id);
+function injectBundledCoreScript(content: string) {
+  const existingScript = getBundledScript("core");
   if (existingScript?.dataset.loaded === "true") {
     return;
   }
 
   const script = existingScript ?? document.createElement("script");
   script.type = "text/javascript";
-  script.dataset.unicornSdkId = id;
+  script.dataset.unicornSdkId = "core";
   script.text = content;
   script.dataset.loaded = "true";
 
   if (!existingScript) {
     document.head.appendChild(script);
   }
+}
+
+function createModuleBlobUrl(content: string): string {
+  const blob = new Blob([content], { type: "text/javascript" });
+  return URL.createObjectURL(blob);
+}
+
+function rewriteModelRendererImport(
+  modelRendererContent: string,
+  threeBundleUrl: string,
+): string {
+  return modelRendererContent.replace(
+    /from\s+["']\.\/three-bundle\.js["']/,
+    `from "${threeBundleUrl}"`,
+  );
+}
+
+function injectBundledExtensionImportMap(modelRendererUrl: string) {
+  const existingScript = getBundledScript("import-map");
+  if (existingScript) {
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.type = "importmap";
+  script.dataset.unicornSdkId = "import-map";
+  script.textContent = JSON.stringify({
+    imports: {
+      [UNICORN_STUDIO_MODEL_RENDERER_URL]: modelRendererUrl,
+    },
+  } satisfies BundledUnicornStudioImportMap);
+  document.head.appendChild(script);
+}
+
+function setupBundledExtensions(
+  threeBundleContent: string,
+  modelRendererContent: string,
+) {
+  const threeBundleUrl = createModuleBlobUrl(threeBundleContent);
+  const modelRendererUrl = createModuleBlobUrl(
+    rewriteModelRendererImport(modelRendererContent, threeBundleUrl),
+  );
+
+  injectBundledExtensionImportMap(modelRendererUrl);
 }
 
 function loadBundledSdk(): Promise<void> {
@@ -133,13 +182,29 @@ function loadBundledSdk(): Promise<void> {
         throw createLoadError(MISSING_BUNDLED_SDK_MESSAGE);
       }
 
-      for (const script of BUNDLED_UNICORN_SDK.scripts) {
-        if (!script.content.trim()) {
-          throw createLoadError(MISSING_BUNDLED_SDK_MESSAGE);
-        }
+      const coreScript = BUNDLED_UNICORN_SDK.scripts.find(
+        (script) => script.id === "core",
+      );
+      const threeBundleScript = BUNDLED_UNICORN_SDK.scripts.find(
+        (script) => script.id === "three-bundle",
+      );
+      const modelRendererScript = BUNDLED_UNICORN_SDK.scripts.find(
+        (script) => script.id === "model-renderer",
+      );
 
-        injectBundledScript(script.id, script.content);
+      if (
+        !coreScript?.content.trim() ||
+        !threeBundleScript?.content.trim() ||
+        !modelRendererScript?.content.trim()
+      ) {
+        throw createLoadError(MISSING_BUNDLED_SDK_MESSAGE);
       }
+
+      setupBundledExtensions(
+        threeBundleScript.content,
+        modelRendererScript.content,
+      );
+      injectBundledCoreScript(coreScript.content);
 
       assertSdkAvailable();
     })
