@@ -131,7 +131,7 @@ function rewriteModelRendererImport(
   threeBundleUrl: string,
 ): string {
   return modelRendererContent.replace(
-    /from\s+["']\.\/three-bundle\.js["']/,
+    /from\s*["']\.\/three-bundle\.js["']/,
     `from "${threeBundleUrl}"`,
   );
 }
