@@ -347,6 +347,152 @@ describe("useUnicornScene", () => {
   });
 
   // -----------------------------------------------------------------------
+  // Variables and presets
+  // -----------------------------------------------------------------------
+
+  it("passes variables and preset to addScene as initial values", async () => {
+    const scene = createMockScene();
+    addSceneMock.mockResolvedValueOnce(scene);
+
+    renderHook(() =>
+      useUnicornScene({
+        ...defaultProps(elementRef),
+        variables: { brandColor: "#7c3aed", intensity: 0.65 },
+        preset: "Dark Theme",
+      }),
+    );
+
+    await act(async () => {});
+
+    const config = addSceneMock.mock.calls[0][0];
+    expect(config.initialVariables).toEqual({
+      brandColor: "#7c3aed",
+      intensity: 0.65,
+    });
+    expect(config.initialPreset).toBe("Dark Theme");
+  });
+
+  it("syncs variable changes via setVariables without re-initializing", async () => {
+    const setVariables = vi.fn();
+    const scene = createMockScene({ setVariables });
+    addSceneMock.mockResolvedValue(scene);
+
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: {
+        ...defaultProps(elementRef),
+        variables: { intensity: 0.2 },
+      },
+    });
+
+    await act(async () => {});
+    expect(addSceneMock).toHaveBeenCalledTimes(1);
+    // Initial values are delivered via initialVariables, not setVariables
+    expect(setVariables).not.toHaveBeenCalled();
+
+    rerender({ ...defaultProps(elementRef), variables: { intensity: 0.9 } });
+    await act(async () => {});
+
+    expect(setVariables).toHaveBeenCalledWith({ intensity: 0.9 });
+    expect(addSceneMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call setVariables when a new object has identical values", async () => {
+    const setVariables = vi.fn();
+    const scene = createMockScene({ setVariables });
+    addSceneMock.mockResolvedValue(scene);
+
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: {
+        ...defaultProps(elementRef),
+        variables: { intensity: 0.5 },
+      },
+    });
+
+    await act(async () => {});
+
+    // New object reference, same values
+    rerender({ ...defaultProps(elementRef), variables: { intensity: 0.5 } });
+    await act(async () => {});
+
+    expect(setVariables).not.toHaveBeenCalled();
+  });
+
+  it("syncs preset changes via setPreset without re-initializing", async () => {
+    const setPreset = vi.fn();
+    const scene = createMockScene({ setPreset });
+    addSceneMock.mockResolvedValue(scene);
+
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: { ...defaultProps(elementRef), preset: "Light Theme" },
+    });
+
+    await act(async () => {});
+    expect(setPreset).not.toHaveBeenCalled();
+
+    rerender({ ...defaultProps(elementRef), preset: "Dark Theme" });
+    await act(async () => {});
+
+    expect(setPreset).toHaveBeenCalledWith("Dark Theme");
+    expect(addSceneMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("subscribes to variable changes and unsubscribes on unmount", async () => {
+    const unsubscribe = vi.fn();
+    let subscribedCallback:
+      | ((name: string, value: unknown, values: object) => void)
+      | undefined;
+    const scene = createMockScene({
+      onVariableChange: vi.fn((cb) => {
+        subscribedCallback = cb;
+        return unsubscribe;
+      }),
+    });
+    addSceneMock.mockResolvedValueOnce(scene);
+
+    const onVariableChange = vi.fn();
+
+    const { unmount } = renderHook(() =>
+      useUnicornScene({ ...defaultProps(elementRef), onVariableChange }),
+    );
+
+    await act(async () => {});
+    expect(scene.onVariableChange).toHaveBeenCalledTimes(1);
+
+    subscribedCallback?.("intensity", 0.9, { intensity: 0.9 });
+    expect(onVariableChange).toHaveBeenCalledWith("intensity", 0.9, {
+      intensity: 0.9,
+    });
+
+    unmount();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles scenes without the variables API gracefully", async () => {
+    const scene = createMockScene();
+    addSceneMock.mockResolvedValue(scene);
+
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: {
+        ...defaultProps(elementRef),
+        variables: { intensity: 0.2 },
+        preset: "Dark Theme",
+        onVariableChange: vi.fn(),
+      },
+    });
+
+    await act(async () => {});
+
+    expect(() => {
+      rerender({
+        ...defaultProps(elementRef),
+        variables: { intensity: 0.9 },
+        preset: "Light Theme",
+        onVariableChange: vi.fn(),
+      });
+    }).not.toThrow();
+  });
+
+  // -----------------------------------------------------------------------
   // Validation errors
   // -----------------------------------------------------------------------
 

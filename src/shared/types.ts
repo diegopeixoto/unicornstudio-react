@@ -15,6 +15,121 @@ export type ValidFPS = 15 | 24 | 30 | 60 | 120;
 export type ScaleRange = number;
 
 /**
+ * Vec2 value for vector variables.
+ */
+export interface UnicornVec2 {
+  type: "Vec2";
+  x: number;
+  y: number;
+}
+
+/**
+ * Vec3 value for vector variables.
+ */
+export interface UnicornVec3 {
+  type: "Vec3";
+  x: number;
+  y: number;
+  z: number;
+}
+
+/**
+ * Value accepted by a Unicorn Studio scene variable.
+ *
+ * @remarks
+ * Colors are hex strings (e.g. `#7c3aed`), textures are URL strings, and
+ * vector variables use {@link UnicornVec2} / {@link UnicornVec3} objects.
+ */
+export type UnicornVariableValue =
+  | number
+  | boolean
+  | string
+  | UnicornVec2
+  | UnicornVec3;
+
+/**
+ * A map of variable names to values, as accepted by `setVariables()` and
+ * the `variables` prop.
+ */
+export type UnicornVariables = Record<string, UnicornVariableValue>;
+
+/**
+ * A variable definition authored and published with the scene.
+ */
+export interface UnicornVariableDefinition {
+  id: string;
+  name: string;
+  type: string;
+  defaultValue?: UnicornVariableValue;
+  description?: string;
+  validation?: {
+    min?: number;
+    max?: number;
+    step?: number;
+  };
+}
+
+/**
+ * A binding connecting a variable to a layer target.
+ */
+export interface UnicornVariableBinding {
+  layerId: string;
+  kind: "prop" | "source" | "texture";
+  target: string;
+  enabled: boolean;
+}
+
+/**
+ * A variable definition enriched with its current value and binding metadata,
+ * as returned by `scene.getVariableManifest()`.
+ */
+export interface UnicornVariableManifestEntry extends UnicornVariableDefinition {
+  currentValue?: UnicornVariableValue;
+  bindingCount: number;
+  bindings: UnicornVariableBinding[];
+}
+
+/**
+ * An authored group of variable values published with the scene.
+ */
+export interface UnicornPreset {
+  id: string;
+  name: string;
+  values?: UnicornVariables;
+}
+
+/**
+ * Lightweight layer descriptor returned by `scene.getLayers()`.
+ */
+export interface UnicornLayerDescriptor {
+  id: string;
+  publicId?: string;
+  name?: string;
+  type?: string;
+}
+
+/**
+ * Runtime layer object returned by `scene.getLayer()`.
+ */
+export interface UnicornLayer {
+  hide: () => UnicornLayer;
+  show: () => UnicornLayer;
+}
+
+/**
+ * Callback invoked when a scene variable changes.
+ *
+ * @param name - The changed variable name
+ * @param value - The value passed to `setVariable()`
+ * @param values - Current variable values after the change
+ */
+export type UnicornVariableChangeCallback = (
+  name: string,
+  value: UnicornVariableValue,
+  values: UnicornVariables,
+) => void;
+
+/**
  * Props for the UnicornScene component.
  */
 export interface UnicornSceneProps {
@@ -129,6 +244,34 @@ export interface UnicornSceneProps {
   paused?: boolean;
 
   /**
+   * Values for variables authored and published with the scene.
+   *
+   * @remarks
+   * Applied as `initialVariables` when the scene is created, then synced to
+   * the live scene via `setVariables()` whenever the values change — without
+   * re-initializing the scene. Unknown names or invalid values are ignored by
+   * the SDK with a console warning.
+   */
+  variables?: UnicornVariables;
+
+  /**
+   * Authored preset ID or name to apply to the scene.
+   *
+   * @remarks
+   * Applied as `initialPreset` when the scene is created, then synced via
+   * `setPreset()` whenever it changes. Presets are applied before
+   * `variables`, so explicit variable values override the preset on load.
+   */
+  preset?: string;
+
+  /**
+   * Callback fired when a scene variable changes, including changes made
+   * through this component's `variables` prop and imperative `setVariable()`
+   * calls.
+   */
+  onVariableChange?: UnicornVariableChangeCallback;
+
+  /**
    * Placeholder content to display while loading or on error.
    *
    * @remarks
@@ -211,6 +354,102 @@ export interface UnicornStudioScene {
    * @returns Whether the element is contained within the scene
    */
   contains?: (element: HTMLElement | null) => boolean;
+
+  /**
+   * Sets a single authored variable value.
+   */
+  setVariable?: (
+    name: string,
+    value: UnicornVariableValue,
+  ) => UnicornStudioScene;
+
+  /**
+   * Sets multiple authored variable values at once.
+   */
+  setVariables?: (values: UnicornVariables) => UnicornStudioScene;
+
+  /**
+   * Returns the current value for a variable name.
+   */
+  getVariable?: (name: string) => UnicornVariableValue | undefined;
+
+  /**
+   * Returns all current variable values keyed by name.
+   */
+  getVariables?: () => UnicornVariables;
+
+  /**
+   * Returns a variable definition, or `null` if unknown.
+   */
+  getVariableDefinition?: (name: string) => UnicornVariableDefinition | null;
+
+  /**
+   * Returns all variable definitions published with the scene.
+   */
+  getVariableDefinitions?: () => UnicornVariableDefinition[];
+
+  /**
+   * Returns variable definitions with current values and binding metadata.
+   */
+  getVariableManifest?: () => UnicornVariableManifestEntry[];
+
+  /**
+   * Subscribes to variable changes.
+   *
+   * @returns An unsubscribe function
+   */
+  onVariableChange?: (callback: UnicornVariableChangeCallback) => () => void;
+
+  /**
+   * Returns all authored presets published with the scene.
+   */
+  getPresets?: () => UnicornPreset[];
+
+  /**
+   * Returns a preset by ID or name, or `null` if unknown.
+   */
+  getPreset?: (idOrName: string) => UnicornPreset | null;
+
+  /**
+   * Applies an authored preset by ID or name.
+   */
+  setPreset?: (idOrName: string) => UnicornStudioScene;
+
+  /**
+   * Applies a runtime override to a layer property.
+   *
+   * @remarks
+   * Prefer authored variables when they exist for the same value.
+   */
+  setProp?: (
+    layerIdOrName: string,
+    prop: string,
+    value: unknown,
+  ) => UnicornStudioScene;
+
+  /**
+   * Replaces a named shader sampler on a layer.
+   */
+  setTexture?: (
+    layerIdOrName: string,
+    samplerName: string,
+    value: string | object,
+  ) => UnicornStudioScene;
+
+  /**
+   * Returns lightweight layer descriptors for the scene.
+   */
+  getLayers?: () => UnicornLayerDescriptor[];
+
+  /**
+   * Returns the runtime layer object for a layer ID or name, or `null`.
+   */
+  getLayer?: (idOrName: string) => UnicornLayer | null;
+
+  /**
+   * Returns the latest scene-level pointer position.
+   */
+  getMouse?: () => { x: number; y: number; inBounds: boolean; moved: boolean };
 }
 
 /**
@@ -271,6 +510,17 @@ export interface UnicornSceneConfig {
    * Whether to use production mode for the scene.
    */
   production?: boolean;
+
+  /**
+   * Initial variable values applied after the scene loads its authored
+   * defaults (and after `initialPreset`).
+   */
+  initialVariables?: UnicornVariables;
+
+  /**
+   * Authored preset ID or name applied on load, before `initialVariables`.
+   */
+  initialPreset?: string;
 
   /**
    * Interactivity configuration options.

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type {
   UnicornStudioScene,
   UnicornSceneConfig,
+  UnicornVariables,
+  UnicornVariableChangeCallback,
   ValidFPS,
   ScaleRange,
 } from "./types";
@@ -47,6 +49,8 @@ function buildSceneConfig(
     altText: string;
     ariaLabel: string;
     production?: boolean;
+    variables?: UnicornVariables;
+    preset?: string;
   },
 ): UnicornSceneConfig {
   const elementId =
@@ -66,6 +70,14 @@ function buildSceneConfig(
     ariaLabel: params.ariaLabel,
     production: params.production,
   };
+
+  if (params.variables) {
+    config.initialVariables = params.variables;
+  }
+
+  if (params.preset) {
+    config.initialPreset = params.preset;
+  }
 
   if (params.jsonFilePath) {
     config.filePath = params.jsonFilePath;
@@ -168,6 +180,26 @@ export interface UseUnicornSceneParams {
   paused?: boolean;
 
   /**
+   * Values for variables authored and published with the scene.
+   *
+   * @remarks
+   * Applied as `initialVariables` on creation, then synced to the live scene
+   * via `setVariables()` when the values change, without re-initializing.
+   */
+  variables?: UnicornVariables;
+
+  /**
+   * Authored preset ID or name, applied as `initialPreset` on creation and
+   * synced via `setPreset()` when it changes.
+   */
+  preset?: string;
+
+  /**
+   * Callback fired when a scene variable changes.
+   */
+  onVariableChange?: UnicornVariableChangeCallback;
+
+  /**
    * Callback fired when the scene has loaded successfully.
    */
   onLoad?: () => void;
@@ -251,6 +283,9 @@ export function useUnicornScene({
   ariaLabel,
   isScriptLoaded,
   paused,
+  variables,
+  preset,
+  onVariableChange,
   onLoad,
   onError,
   sceneRef,
@@ -265,6 +300,21 @@ export function useUnicornScene({
   onLoadRef.current = onLoad;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const onVariableChangeRef = useRef(onVariableChange);
+  onVariableChangeRef.current = onVariableChange;
+
+  // Variables and preset are synced to the live scene without re-initializing,
+  // so the init effect reads them from refs instead of depending on them.
+  const variablesRef = useRef(variables);
+  variablesRef.current = variables;
+  const presetRef = useRef(preset);
+  presetRef.current = preset;
+
+  // Serialized so inline object literals don't retrigger the sync effect on
+  // every render.
+  const variablesKey = variables ? JSON.stringify(variables) : undefined;
+
+  const variableUnsubscribeRef = useRef<(() => void) | null>(null);
   const sceneRefRef = useRef(sceneRef);
   const prevSceneRef = useRef(sceneRef);
 
@@ -299,6 +349,8 @@ export function useUnicornScene({
   }, [validationError]);
 
   const destroyScene = useCallback(() => {
+    variableUnsubscribeRef.current?.();
+    variableUnsubscribeRef.current = null;
     if (internalSceneRef.current?.destroy) {
       internalSceneRef.current.destroy();
       internalSceneRef.current = null;
@@ -350,6 +402,8 @@ export function useUnicornScene({
           altText,
           ariaLabel,
           production,
+          variables: variablesRef.current,
+          preset: presetRef.current,
         });
 
         const scene = await withTimeout(
@@ -365,6 +419,10 @@ export function useUnicornScene({
         if (scene) {
           internalSceneRef.current = scene;
           assignSceneRef(sceneRefRef.current, scene);
+          variableUnsubscribeRef.current =
+            scene.onVariableChange?.((name, value, values) =>
+              onVariableChangeRef.current?.(name, value, values),
+            ) ?? null;
           setInitError(null);
           isInitializingRef.current = false;
           onLoadRef.current?.();
@@ -413,6 +471,23 @@ export function useUnicornScene({
       internalSceneRef.current.paused = paused;
     }
   }, [paused]);
+
+  // Sync variable values with the live scene. Initial values are delivered
+  // via `initialVariables` in the scene config, so this only applies changes
+  // made after the scene has loaded.
+  useEffect(() => {
+    if (variablesKey !== undefined && variablesRef.current) {
+      internalSceneRef.current?.setVariables?.(variablesRef.current);
+    }
+  }, [variablesKey]);
+
+  // Sync preset with the live scene. The initial preset is delivered via
+  // `initialPreset` in the scene config.
+  useEffect(() => {
+    if (preset) {
+      internalSceneRef.current?.setPreset?.(preset);
+    }
+  }, [preset]);
 
   // Observe container resize and call scene.resize() so the canvas adapts
   useEffect(() => {

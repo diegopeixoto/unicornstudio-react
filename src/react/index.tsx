@@ -49,6 +49,16 @@ import { isWebGLSupported } from "../shared/utils";
  *   fps={30}
  * />
  * ```
+ *
+ * @example
+ * Driving authored variables and a preset:
+ * ```tsx
+ * <UnicornScene
+ *   projectId="your-project-id"
+ *   preset="Dark Theme"
+ *   variables={{ brandColor: "#7c3aed", intensity: 0.65 }}
+ * />
+ * ```
  */
 function UnicornScene({
   projectId,
@@ -65,6 +75,9 @@ function UnicornScene({
   lazyLoad = DEFAULT_VALUES.lazyLoad,
   production = DEFAULT_VALUES.production,
   paused = DEFAULT_VALUES.paused,
+  variables,
+  preset,
+  onVariableChange,
   placeholder,
   placeholderClassName,
   showPlaceholderOnError = DEFAULT_VALUES.showPlaceholderOnError,
@@ -92,6 +105,9 @@ function UnicornScene({
     ariaLabel: ariaLabel || altText,
     isScriptLoaded: isLoaded,
     paused,
+    variables,
+    preset,
+    onVariableChange,
     sceneRef,
     onLoad: () => {
       setIsSceneLoaded(true);
@@ -171,4 +187,15 @@ export default UnicornScene;
 export { UnicornScene };
 
 // Re-export types for convenience
-export type { UnicornSceneProps } from "../shared/types";
+export type {
+  UnicornSceneProps,
+  UnicornStudioScene,
+  UnicornVariables,
+  UnicornVariableValue,
+  UnicornVariableChangeCallback,
+  UnicornVariableDefinition,
+  UnicornVariableManifestEntry,
+  UnicornPreset,
+  UnicornVec2,
+  UnicornVec3,
+} from "../shared/types";

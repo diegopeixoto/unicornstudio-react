@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.2.6] - 2026-07-08
+
+### Added
+
+#### Variables and Presets Support
+
+- **New `variables` prop**: Pass authored variable values (colors, numbers, booleans, strings, Vec2/Vec3, texture URLs) declaratively
+  - Applied as `initialVariables` when the scene is created
+  - Synced to the live scene via `setVariables()` when values change, without re-initializing the scene
+- **New `preset` prop**: Apply an authored preset by ID or name
+  - Applied as `initialPreset` on load and synced via `setPreset()` when it changes
+- **New `onVariableChange` prop**: Callback fired whenever a scene variable changes
+- **Typed scene API**: `UnicornStudioScene` (received through `sceneRef`) now includes the full SDK 2.2 runtime surface — `setVariable()`, `setVariables()`, `getVariable()`, `getVariables()`, `getVariableDefinition(s)()`, `getVariableManifest()`, `onVariableChange()`, `getPresets()`, `getPreset()`, `setPreset()`, `setProp()`, `setTexture()`, `getLayers()`, `getLayer()`, and `getMouse()`
+- New exported types: `UnicornVariables`, `UnicornVariableValue`, `UnicornVariableChangeCallback`, `UnicornVariableDefinition`, `UnicornVariableManifestEntry`, `UnicornPreset`, `UnicornVec2`, `UnicornVec3`
+
+### Changed
+
+- Updated the Unicorn Studio SDK version to `2.2.6`
+
 ## [2.1.12] - 2026-05-05
 
 ### Changed
