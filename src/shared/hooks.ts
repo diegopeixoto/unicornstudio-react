@@ -392,6 +392,14 @@ export function useUnicornScene({
           throw new Error("UnicornStudio.addScene not found");
         }
 
+        // Snapshot what the scene is created with, so anything that changed
+        // while addScene() was in flight can be replayed once it resolves.
+        const initialVariables = variablesRef.current;
+        const initialVariablesKey = initialVariables
+          ? JSON.stringify(initialVariables)
+          : undefined;
+        const initialPreset = presetRef.current;
+
         const sceneConfig = buildSceneConfig(elementRef.current, {
           jsonFilePath,
           projectId,
@@ -402,8 +410,8 @@ export function useUnicornScene({
           altText,
           ariaLabel,
           production,
-          variables: variablesRef.current,
-          preset: presetRef.current,
+          variables: initialVariables,
+          preset: initialPreset,
         });
 
         const scene = await withTimeout(
@@ -423,6 +431,22 @@ export function useUnicornScene({
             scene.onVariableChange?.((name, value, values) =>
               onVariableChangeRef.current?.(name, value, values),
             ) ?? null;
+
+          // The sync effects below no-op while the scene ref is still null, so
+          // apply anything that changed during creation now.
+          const latestPreset = presetRef.current;
+          if (latestPreset && latestPreset !== initialPreset) {
+            scene.setPreset?.(latestPreset);
+          }
+
+          const latestVariables = variablesRef.current;
+          if (
+            latestVariables &&
+            JSON.stringify(latestVariables) !== initialVariablesKey
+          ) {
+            scene.setVariables?.(latestVariables);
+          }
+
           setInitError(null);
           isInitializingRef.current = false;
           onLoadRef.current?.();

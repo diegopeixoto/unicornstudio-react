@@ -467,6 +467,63 @@ describe("useUnicornScene", () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
+  it("applies variables and preset that changed while scene creation was pending", async () => {
+    const setVariables = vi.fn();
+    const setPreset = vi.fn();
+    const scene = createMockScene({ setVariables, setPreset });
+
+    let resolveAddScene!: (value: UnicornStudioScene) => void;
+    addSceneMock.mockReturnValue(
+      new Promise<UnicornStudioScene>((resolve) => {
+        resolveAddScene = resolve;
+      }),
+    );
+
+    const { rerender } = renderHook((props) => useUnicornScene(props), {
+      initialProps: {
+        ...defaultProps(elementRef),
+        variables: { intensity: 0.2 },
+        preset: "Dark Theme",
+      },
+    });
+
+    // Props change while addScene() is still in flight, so the scene config was
+    // already built with the previous values.
+    rerender({
+      ...defaultProps(elementRef),
+      variables: { intensity: 0.9 },
+      preset: "Light Theme",
+    });
+
+    await act(async () => {
+      resolveAddScene(scene);
+    });
+
+    expect(setVariables).toHaveBeenCalledWith({ intensity: 0.9 });
+    expect(setPreset).toHaveBeenCalledWith("Light Theme");
+  });
+
+  it("does not replay variables or preset that were unchanged during creation", async () => {
+    const setVariables = vi.fn();
+    const setPreset = vi.fn();
+    const scene = createMockScene({ setVariables, setPreset });
+    addSceneMock.mockResolvedValue(scene);
+
+    renderHook(() =>
+      useUnicornScene({
+        ...defaultProps(elementRef),
+        variables: { intensity: 0.2 },
+        preset: "Dark Theme",
+      }),
+    );
+
+    await act(async () => {});
+
+    // Delivered via initialVariables/initialPreset in the scene config.
+    expect(setVariables).not.toHaveBeenCalled();
+    expect(setPreset).not.toHaveBeenCalled();
+  });
+
   it("handles scenes without the variables API gracefully", async () => {
     const scene = createMockScene();
     addSceneMock.mockResolvedValue(scene);
@@ -490,6 +547,9 @@ describe("useUnicornScene", () => {
         onVariableChange: vi.fn(),
       });
     }).not.toThrow();
+
+    // The graceful path must not recreate the scene either.
+    expect(addSceneMock).toHaveBeenCalledTimes(1);
   });
 
   // -----------------------------------------------------------------------

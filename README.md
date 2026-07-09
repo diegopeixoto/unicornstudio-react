@@ -331,7 +331,7 @@ The component now supports flexible placeholder options that can be displayed wh
 | `lazyLoad`                    | `boolean`                         | `true`    | Load scene only when scrolled into view                                    |
 | `production`                  | `boolean`                         | `true`    | Use production mode when initializing the scene                            |
 | `paused`                      | `boolean`                         | `false`   | Pause or resume the scene animation                                        |
-| `variables`                   | `Record<string, value>`           | -         | Authored variable values, synced to the live scene when they change        |
+| `variables`                   | `UnicornVariables`                | -         | Authored variable values, synced to the live scene when they change        |
 | `preset`                      | `string`                          | -         | Authored preset ID or name, synced to the live scene when it changes       |
 | `onVariableChange`            | `(name, value, values) => void`   | -         | Callback fired whenever a scene variable changes                           |
 | `placeholder`                 | `string \| ReactNode`             | -         | Placeholder content (image URL or React component)                         |
