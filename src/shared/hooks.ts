@@ -238,6 +238,50 @@ function assignSceneRef(
 }
 
 /**
+ * The variable/preset values a scene was created with, used to detect props
+ * that changed while `addScene()` was still in flight.
+ */
+interface CreatedWith {
+  preset?: string;
+  variablesKey?: string;
+}
+
+function snapshotCreatedWith(
+  preset: string | undefined,
+  variables: UnicornVariables | undefined,
+): CreatedWith {
+  return {
+    preset,
+    variablesKey: variables ? JSON.stringify(variables) : undefined,
+  };
+}
+
+/**
+ * Applies variables and presets that changed while the scene was being created.
+ *
+ * @remarks
+ * The sync effects no-op while the scene ref is still `null`, so a prop change
+ * during the `addScene()` await would otherwise never reach the loaded scene.
+ */
+function replaySceneDrift(
+  scene: UnicornStudioScene,
+  createdWith: CreatedWith,
+  latestPreset: string | undefined,
+  latestVariables: UnicornVariables | undefined,
+): void {
+  if (latestPreset && latestPreset !== createdWith.preset) {
+    scene.setPreset?.(latestPreset);
+  }
+
+  if (
+    latestVariables &&
+    JSON.stringify(latestVariables) !== createdWith.variablesKey
+  ) {
+    scene.setVariables?.(latestVariables);
+  }
+}
+
+/**
  * Hook for managing a Unicorn Studio scene lifecycle.
  *
  * @remarks
@@ -395,10 +439,11 @@ export function useUnicornScene({
         // Snapshot what the scene is created with, so anything that changed
         // while addScene() was in flight can be replayed once it resolves.
         const initialVariables = variablesRef.current;
-        const initialVariablesKey = initialVariables
-          ? JSON.stringify(initialVariables)
-          : undefined;
         const initialPreset = presetRef.current;
+        const createdWith = snapshotCreatedWith(
+          initialPreset,
+          initialVariables,
+        );
 
         const sceneConfig = buildSceneConfig(elementRef.current, {
           jsonFilePath,
@@ -432,20 +477,12 @@ export function useUnicornScene({
               onVariableChangeRef.current?.(name, value, values),
             ) ?? null;
 
-          // The sync effects below no-op while the scene ref is still null, so
-          // apply anything that changed during creation now.
-          const latestPreset = presetRef.current;
-          if (latestPreset && latestPreset !== initialPreset) {
-            scene.setPreset?.(latestPreset);
-          }
-
-          const latestVariables = variablesRef.current;
-          if (
-            latestVariables &&
-            JSON.stringify(latestVariables) !== initialVariablesKey
-          ) {
-            scene.setVariables?.(latestVariables);
-          }
+          replaySceneDrift(
+            scene,
+            createdWith,
+            presetRef.current,
+            variablesRef.current,
+          );
 
           setInitError(null);
           isInitializingRef.current = false;
