@@ -15,6 +15,10 @@
 - **Typed scene API**: `UnicornStudioScene` (received through `sceneRef`) now includes the full SDK 2.2 runtime surface — `setVariable()`, `setVariables()`, `getVariable()`, `getVariables()`, `getVariableDefinition(s)()`, `getVariableManifest()`, `onVariableChange()`, `getPresets()`, `getPreset()`, `setPreset()`, `setProp()`, `setTexture()`, `getLayers()`, `getLayer()`, and `getMouse()`
 - New exported types: `UnicornVariables`, `UnicornVariableValue`, `UnicornVariableChangeCallback`, `UnicornVariableDefinition`, `UnicornVariableManifestEntry`, `UnicornPreset`, `UnicornVec2`, `UnicornVec3`
 
+### Fixed
+
+- `variables` and `preset` changes made while the scene was still being created are now applied once it finishes loading. Previously the sync effects ran against a not-yet-assigned scene and were dropped, leaving the scene on the values captured when `addScene()` was called.
+
 ### Changed
 
 - Updated the Unicorn Studio SDK version to `2.2.6`
