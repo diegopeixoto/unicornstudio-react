@@ -205,6 +205,64 @@ export default function MyComponent() {
 
 The `sceneRef` value is assigned once the scene finishes loading and is cleared automatically if the scene is destroyed or re-initialized.
 
+## Variables and Presets
+
+Scenes published with Unicorn Studio SDK 2.2+ can expose authored **variables** (brand colors, effect intensity, image URLs, etc.) and **presets** (named groups of variable values, such as themes). Both are supported declaratively:
+
+```tsx
+<UnicornScene
+  projectId="YOUR_PROJECT_EMBED_ID"
+  preset="Dark Theme"
+  variables={{ brandColor: "#7c3aed", intensity: 0.65 }}
+  onVariableChange={(name, value, values) => {
+    console.log("Variable changed:", name, value, values);
+  }}
+/>
+```
+
+- `variables` is applied as `initialVariables` when the scene is created, then synced to the live scene via `setVariables()` whenever the values change — the scene is **not** re-initialized. Unknown names or invalid values are ignored by the SDK with a console warning.
+- `preset` accepts an authored preset ID or name. It is applied as `initialPreset` on load (before `variables`, so explicit variable values win) and synced via `setPreset()` when it changes.
+- `onVariableChange` fires for every variable change, including changes made through the `variables` prop, presets, and imperative `setVariable()` calls.
+
+### Theming Example
+
+```tsx
+export default function Hero({ theme }: { theme: "light" | "dark" }) {
+  return (
+    <UnicornScene
+      projectId="YOUR_PROJECT_EMBED_ID"
+      preset={theme === "dark" ? "Dark Theme" : "Light Theme"}
+    />
+  );
+}
+```
+
+### Imperative Access
+
+For advanced use cases (animating variables with GSAP, building custom control panels from the variable manifest, direct layer control), use `sceneRef` to reach the full scene API:
+
+```tsx
+const sceneRef = useRef<UnicornStudioScene | null>(null);
+
+const inspect = () => {
+  console.table(sceneRef.current?.getVariableManifest?.());
+  console.log(sceneRef.current?.getPresets?.());
+};
+
+const animate = () => {
+  const scene = sceneRef.current;
+  if (!scene) return;
+  const proxy = { amount: Number(scene.getVariable?.("amount") ?? 0) };
+  gsap.to(proxy, {
+    amount: 1,
+    duration: 1.2,
+    onUpdate: () => scene.setVariable?.("amount", proxy.amount),
+  });
+};
+```
+
+The scene instance is fully typed, including `setVariable()`, `getVariableManifest()`, `setPreset()`, `setProp()`, `setTexture()`, `getLayers()`, and `getMouse()`. See the [Unicorn Studio runtime control guide](https://www.unicorn.studio/unicornstudio-llms.txt) for the complete API.
+
 ## Placeholder Support
 
 The component now supports flexible placeholder options that can be displayed while loading, on error, or when WebGL is not supported.
@@ -273,6 +331,9 @@ The component now supports flexible placeholder options that can be displayed wh
 | `lazyLoad`                    | `boolean`                         | `true`    | Load scene only when scrolled into view                                    |
 | `production`                  | `boolean`                         | `true`    | Use production mode when initializing the scene                            |
 | `paused`                      | `boolean`                         | `false`   | Pause or resume the scene animation                                        |
+| `variables`                   | `UnicornVariables`                | -         | Authored variable values, synced to the live scene when they change        |
+| `preset`                      | `string`                          | -         | Authored preset ID or name, synced to the live scene when it changes       |
+| `onVariableChange`            | `(name, value, values) => void`   | -         | Callback fired whenever a scene variable changes                           |
 | `placeholder`                 | `string \| ReactNode`             | -         | Placeholder content (image URL or React component)                         |
 | `placeholderClassName`        | `string`                          | -         | CSS classes for placeholder div (when using CSS placeholder)               |
 | `showPlaceholderOnError`      | `boolean`                         | `true`    | Show placeholder when scene fails to load                                  |
