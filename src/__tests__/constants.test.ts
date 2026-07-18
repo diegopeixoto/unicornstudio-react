@@ -5,10 +5,24 @@ import {
   DEFAULT_VALUES,
   VALID_FPS,
 } from "../shared/constants";
+import { BUNDLED_UNICORN_SDK } from "../shared/sdk-bundle";
+import { version as packageVersion } from "../../package.json";
 
 describe("constants", () => {
   it("CDN URL includes the version", () => {
     expect(UNICORN_STUDIO_CDN_URL).toContain(UNICORN_STUDIO_VERSION);
+  });
+
+  it("package version matches UNICORN_STUDIO_VERSION", () => {
+    expect(packageVersion).toBe(UNICORN_STUDIO_VERSION);
+  });
+
+  it("bundled SDK core matches UNICORN_STUDIO_VERSION", () => {
+    const core = BUNDLED_UNICORN_SDK.scripts.find(
+      (script) => script.id === "core",
+    );
+    expect(BUNDLED_UNICORN_SDK.available).toBe(true);
+    expect(core?.content).toContain(`"${UNICORN_STUDIO_VERSION}"`);
   });
 
   it("CDN URL points to jsdelivr", () => {

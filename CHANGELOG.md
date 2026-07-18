@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.8] - 2026-07-18
+
+### Changed
+
+- Updated the bundled Unicorn Studio SDK to 2.2.8, adding particle support and improved rendering for scenes with overlapping or blended elements
+- Re-vendored the SDK extension bundles (`model-renderer.js`, `three-bundle.js`) to match SDK 2.2.8
+
 ## [2.2.6] - 2026-07-08
 
 ### Added

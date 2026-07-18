@@ -3,7 +3,7 @@ import type { ValidFPS, ScaleRange } from "./types";
 /**
  * Current version of the Unicorn Studio SDK being used.
  */
-export const UNICORN_STUDIO_VERSION = "2.2.6";
+export const UNICORN_STUDIO_VERSION = "2.2.8";
 
 /**
  * Official CDN URL for the Unicorn Studio SDK script.
