@@ -19,6 +19,12 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      - name: Verify committed SDK bundle is in sync with vendor
+        run: |
+          npm run sync-sdk
+          git diff --exit-code src/shared/sdk-bundle.ts
+
       - run: npm run lint
       - run: npm run type-check
       - run: npm run test:coverage

@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it, expect } from "vitest";
 import {
   UNICORN_STUDIO_VERSION,
@@ -23,6 +26,31 @@ describe("constants", () => {
     );
     expect(BUNDLED_UNICORN_SDK.available).toBe(true);
     expect(core?.content).toContain(`"${UNICORN_STUDIO_VERSION}"`);
+  });
+
+  it("bundled SDK scripts are byte-identical to vendor files", () => {
+    const vendorDir = join(process.cwd(), "vendor", "unicornstudio");
+    const sha256 = (content: string) =>
+      createHash("sha256").update(content).digest("hex");
+
+    expect(BUNDLED_UNICORN_SDK.scripts.map((script) => script.id)).toEqual([
+      "core",
+      "model-renderer",
+      "three-bundle",
+    ]);
+
+    for (const script of BUNDLED_UNICORN_SDK.scripts) {
+      const vendorContent = readFileSync(
+        join(vendorDir, script.relativePath),
+        "utf8",
+      );
+      expect(script.content.length, script.relativePath).toBe(
+        vendorContent.length,
+      );
+      expect(sha256(script.content), script.relativePath).toBe(
+        sha256(vendorContent),
+      );
+    }
   });
 
   it("CDN URL points to jsdelivr", () => {
