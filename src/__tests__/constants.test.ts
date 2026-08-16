@@ -33,10 +33,16 @@ describe("constants", () => {
     const sha256 = (content: string) =>
       createHash("sha256").update(content).digest("hex");
 
-    expect(BUNDLED_UNICORN_SDK.scripts.map((script) => script.id)).toEqual([
-      "core",
-      "model-renderer",
-      "three-bundle",
+    expect(BUNDLED_UNICORN_SDK.available).toBe(true);
+    expect(
+      BUNDLED_UNICORN_SDK.scripts.map(({ id, relativePath }) => ({
+        id,
+        relativePath,
+      })),
+    ).toEqual([
+      { id: "core", relativePath: "unicornStudio.umd.js" },
+      { id: "model-renderer", relativePath: "extensions/model-renderer.js" },
+      { id: "three-bundle", relativePath: "extensions/three-bundle.js" },
     ]);
 
     for (const script of BUNDLED_UNICORN_SDK.scripts) {
