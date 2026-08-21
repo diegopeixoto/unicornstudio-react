@@ -409,6 +409,10 @@ export function useUnicornScene({
     async function initializeScene() {
       if (!elementRef.current || !isScriptLoaded || validationError) return;
 
+      // Let Strict Mode clean up its discarded effect before starting the SDK.
+      await Promise.resolve();
+      if (ignore) return;
+
       // Prevent multiple concurrent initializations
       if (isInitializingRef.current) return;
 
