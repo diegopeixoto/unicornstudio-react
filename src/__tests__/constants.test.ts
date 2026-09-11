@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it, expect } from "vitest";
 import {
   UNICORN_STUDIO_VERSION,
@@ -8,6 +11,16 @@ import {
 import { BUNDLED_UNICORN_SDK } from "../shared/sdk-bundle";
 import { version as packageVersion } from "../../package.json";
 
+/**
+ * Version string the vendored core SDK reports at runtime.
+ *
+ * This usually equals `UNICORN_STUDIO_VERSION`, but upstream v2.2.13 shipped
+ * `dist/unicornStudio.umd.js` with a stale `2.2.12` internal version. The
+ * vendored file is kept byte-identical to the upstream tag, so the mismatch is
+ * pinned here instead of being hidden by editing vendored bytes.
+ */
+const VENDORED_CORE_VERSION = "2.2.12";
+
 describe("constants", () => {
   it("CDN URL includes the version", () => {
     expect(UNICORN_STUDIO_CDN_URL).toContain(UNICORN_STUDIO_VERSION);
@@ -17,12 +30,43 @@ describe("constants", () => {
     expect(packageVersion).toBe(UNICORN_STUDIO_VERSION);
   });
 
-  it("bundled SDK core matches UNICORN_STUDIO_VERSION", () => {
+  it("bundled SDK core reports the vendored upstream version", () => {
     const core = BUNDLED_UNICORN_SDK.scripts.find(
       (script) => script.id === "core",
     );
     expect(BUNDLED_UNICORN_SDK.available).toBe(true);
-    expect(core?.content).toContain(`"${UNICORN_STUDIO_VERSION}"`);
+    expect(core?.content).toContain(`"${VENDORED_CORE_VERSION}"`);
+  });
+
+  it("bundled SDK scripts are byte-identical to vendor files", () => {
+    const vendorDir = join(process.cwd(), "vendor", "unicornstudio");
+    const sha256 = (content: string) =>
+      createHash("sha256").update(content).digest("hex");
+
+    expect(BUNDLED_UNICORN_SDK.available).toBe(true);
+    expect(
+      BUNDLED_UNICORN_SDK.scripts.map(({ id, relativePath }) => ({
+        id,
+        relativePath,
+      })),
+    ).toEqual([
+      { id: "core", relativePath: "unicornStudio.umd.js" },
+      { id: "model-renderer", relativePath: "extensions/model-renderer.js" },
+      { id: "three-bundle", relativePath: "extensions/three-bundle.js" },
+    ]);
+
+    for (const script of BUNDLED_UNICORN_SDK.scripts) {
+      const vendorContent = readFileSync(
+        join(vendorDir, script.relativePath),
+        "utf8",
+      );
+      expect(script.content.length, script.relativePath).toBe(
+        vendorContent.length,
+      );
+      expect(sha256(script.content), script.relativePath).toBe(
+        sha256(vendorContent),
+      );
+    }
   });
 
   it("CDN URL points to jsdelivr", () => {

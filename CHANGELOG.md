@@ -1,10 +1,14 @@
 # Changelog
 
-## [2.2.13] - 2026-09-08
+## [2.2.13] - 2026-09-11
 
 ### Changed
 
 - Updated the bundled Unicorn Studio SDK to 2.2.13
+
+### Notes
+
+- Upstream shipped `dist/unicornStudio.umd.js` in v2.2.13 with a stale internal version string (`2.2.12`), so `UnicornStudio.version` reports `2.2.12` at runtime. The vendored files are kept byte-identical to the upstream tag rather than patched, and the test suite pins the mismatch.
 
 ## [2.2.10] - 2026-08-14
 
