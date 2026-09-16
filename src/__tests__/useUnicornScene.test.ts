@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { StrictMode } from "react";
 import { useUnicornScene } from "../shared/hooks";
 import type { UnicornStudioScene } from "../shared/types";
 import { MockResizeObserver } from "./setup";
@@ -83,6 +84,20 @@ describe("useUnicornScene", () => {
 
     expect(addSceneMock).toHaveBeenCalledTimes(1);
     expect(result.current.error).toBeNull();
+  });
+
+  it("initializes once in Strict Mode", async () => {
+    const scene = createMockScene();
+    addSceneMock.mockResolvedValue(scene);
+
+    renderHook(() => useUnicornScene(defaultProps(elementRef)), {
+      wrapper: StrictMode,
+    });
+
+    await act(async () => {});
+
+    expect(addSceneMock).toHaveBeenCalledTimes(1);
+    expect(scene.destroy).not.toHaveBeenCalled();
   });
 
   it("does not initialize when isScriptLoaded is false", async () => {
@@ -486,6 +501,8 @@ describe("useUnicornScene", () => {
         preset: "Dark Theme",
       },
     });
+
+    await act(async () => {});
 
     // Props change while addScene() is still in flight, so the scene config was
     // already built with the previous values.
