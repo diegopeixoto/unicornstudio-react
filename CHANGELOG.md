@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.4.0] - 2026-10-08
+
+### Changed
+
+- Updated the bundled Unicorn Studio SDK to 2.4.0
+
 ## [2.2.13] - 2026-09-11
 
 ### Changed

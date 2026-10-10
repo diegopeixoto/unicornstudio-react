@@ -14,12 +14,11 @@ import { version as packageVersion } from "../../package.json";
 /**
  * Version string the vendored core SDK reports at runtime.
  *
- * This usually equals `UNICORN_STUDIO_VERSION`, but upstream v2.2.13 shipped
- * `dist/unicornStudio.umd.js` with a stale `2.2.12` internal version. The
- * vendored file is kept byte-identical to the upstream tag, so the mismatch is
- * pinned here instead of being hidden by editing vendored bytes.
+ * Usually equals `UNICORN_STUDIO_VERSION`. Pinned separately so a stale string
+ * inside an upstream build (as happened with v2.2.13, which reported `2.2.12`)
+ * fails this test instead of being patched into the vendored file.
  */
-const VENDORED_CORE_VERSION = "2.2.12";
+const VENDORED_CORE_VERSION = "2.4.0";
 
 describe("constants", () => {
   it("CDN URL includes the version", () => {
